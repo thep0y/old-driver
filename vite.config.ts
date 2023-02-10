@@ -10,6 +10,8 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
 import Components from 'unplugin-vue-components/vite'
+import Icons from 'unplugin-icons/vite'
+import IconsResolver from 'unplugin-icons/resolver'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
 import Unocss from 'unocss/vite'
@@ -48,11 +50,19 @@ export default defineConfig({
       // allow auto import and register components used in markdown
       include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
       resolvers: [
+         // 自动注册图标组件
+        IconsResolver({
+          enabledCollections: ['ep'],
+        }),
         ElementPlusResolver({
           importStyle: 'sass',
         }),
       ],
       dts: 'src/components.d.ts',
+    }),
+
+    Icons({
+      autoInstall: true,
     }),
 
     // https://github.com/antfu/unocss
