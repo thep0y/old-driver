@@ -1,43 +1,22 @@
 <template>
   <el-upload
-    v-model:file-list="fileList"
-    list-type="picture-card"
-    :on-preview="handlePictureCardPreview"
-    :on-remove="handleRemove"
-    :auto-upload="false"
-    :drag="false"
+    class="upload-demo"
+    drag
+    action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
     multiple
   >
+    <i-ep-upload-filled />
+    <div class="el-upload__text">
+      Drop file here or <em>click to upload</em>
+    </div>
     <template #tip>
-      提示文字
+      <div class="el-upload__tip">
+        jpg/png files with a size less than 500kb
+      </div>
     </template>
-    <i-ep-plus />
   </el-upload>
-
-  <el-dialog v-model="dialogVisible">
-    <img
-      w-full
-      :src="dialogImageUrl"
-      alt="查看图片"
-    >
-  </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { UploadProps, UploadUserFile } from 'element-plus'
-
-const fileList = ref<UploadUserFile[]>([])
-
-const dialogImageUrl = ref('')
-const dialogVisible = ref(false)
-
-const handleRemove: UploadProps['onRemove'] = (uploadFile, uploadFiles) => {
-  console.log(uploadFile, uploadFiles)
-}
-
-const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
-  dialogImageUrl.value = uploadFile.url!
-  dialogVisible.value = true
-}
+import 'element-plus/es/components/upload/style/index'
 </script>
