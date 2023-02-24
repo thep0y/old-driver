@@ -13,9 +13,11 @@
   "tauri": {
     "allowlist": {
       "all": false,
+      "protocol": {
+        "asset": true
+      },
       "shell": {
-        "all": false,
-        "open": true
+        "open": "^[a-zA-Z]:\\\\|^[a-zA-Z]:/[A-Za-z.]|^/[A-Za-z]|^https?://"
       }
     },
     "bundle": {
@@ -33,7 +35,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
+      "identifier": "com.thepoy.olddriver",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -52,7 +54,7 @@
       }
     },
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; img-src 'self' asset: https://asset.localhost"
     },
     "updater": {
       "active": false
@@ -62,7 +64,7 @@
         "fullscreen": false,
         "height": 600,
         "resizable": true,
-        "title": "demo",
+        "title": "PDF 老司机",
         "width": 800
       }
     ]

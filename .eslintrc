@@ -15,6 +15,7 @@
         "@typescript-eslint"
     ],
     "rules": {
+        "no-undef": "off", // 未声明错误由 ts-server 检查，因为 eslint 无法检查类型声明文件
         "indent": [
             "error",
             2

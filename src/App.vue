@@ -1,12 +1,13 @@
 <template>
-  <el-config-provider namespace="ep">
+  <el-config-provider>
     <!-- <BaseHeader /> -->
-    <div style="display: flex">
-      <!-- <BaseSide /> -->
-      <div>
-        <HelloWorld msg="Hello Vue 3.0 + Element Plus + Vite" />
-      </div>
-    </div>
+    <!-- <div style="display: flex"> -->
+    <!-- <BaseSide /> -->
+    <router-view />
+    <!-- <Suspense>
+      <select-files />
+    </Suspense> -->
+    <!-- </div> -->
   </el-config-provider>
 </template>
 
@@ -14,6 +15,7 @@
 #app {
   text-align: center;
   color: var(--ep-text-color-primary);
+  height: 100%;
 }
 
 .element-plus-logo {

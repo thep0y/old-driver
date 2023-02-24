@@ -18,5 +18,9 @@ declare module '@vue/runtime-core' {
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
     IEpPlus: typeof import('~icons/ep/plus')['default']
     IEpUploadFilled: typeof import('~icons/ep/upload-filled')['default']
+    ImageList: typeof import('./components/image-list.vue')['default']
+    RouterLink: typeof import('vue-router')['RouterLink']
+    RouterView: typeof import('vue-router')['RouterView']
+    SelectFiles: typeof import('./components/select-files.vue')['default']
   }
 }
