@@ -14,7 +14,7 @@
 import { PropType } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
 import { open } from '@tauri-apps/api/shell'
-import type { UploadProps, UploadUserFile } from 'element-plus'
+import type { UploadProps, UploadFile, UploadUserFile } from 'element-plus'
 
 defineProps({
   fileList: {
@@ -23,12 +23,16 @@ defineProps({
   }
 })
 
+interface File extends UploadFile {
+  src: string;
+}
+
 const handleRemove: UploadProps['onRemove'] = (uploadFile, uploadFiles) => {
   console.log(uploadFile, uploadFiles)
 }
 
-const handlePictureCardPreview: UploadProps['onPreview'] = async (uploadFile) => {
-  await open('C:\\Users\\thepoy\\Pictures\\截图\\微信截图_20220617152552.png')
+const handlePictureCardPreview = async (uploadFile: File) => {
+  await open(uploadFile.src)
   await open('http://google.com')
 }
 </script>
