@@ -1,6 +1,6 @@
 import React from 'react'
 import { InboxOutlined } from '@ant-design/icons'
-import '~/styles/Selecter.scss'
+import '~/styles/selecter.scss'
 import { open } from '@tauri-apps/api/dialog'
 
 const select = async (): Promise<void> => {

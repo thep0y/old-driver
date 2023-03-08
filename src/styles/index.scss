@@ -1,0 +1,41 @@
+/*
+ * author   thepoy
+ * file     styles.scss
+ * created  2023-03-08 12:51:41
+ * modified 2023-03-08 13:06:17
+ */
+
+:root {
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+
+  color: #0f0f0f;
+  background-color: #f6f6f6;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  box-sizing: border-box;
+  padding: 35px 5px 5px 5px;
+}
+
+#root {
+  height: 100%;
+}

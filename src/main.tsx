@@ -5,7 +5,8 @@ import {
   RouterProvider
 } from 'react-router-dom'
 import Selecter from '~/components/Selecter'
-import './styles.scss'
+import TitleBar from '~/components/TitleBar'
+import '~/styles/index.scss'
 
 const router = createBrowserRouter([
   {
@@ -16,6 +17,7 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
+    <TitleBar />
     <RouterProvider router={router} />
   </React.StrictMode>
 )
