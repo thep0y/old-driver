@@ -4,14 +4,18 @@ import {
   createBrowserRouter,
   RouterProvider
 } from 'react-router-dom'
+import '~/styles/index.scss'
 import Selecter from '~/components/Selecter'
 import TitleBar from '~/components/TitleBar'
-import '~/styles/index.scss'
+import ImageList from '~/components/ImageList'
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <Selecter />
+  }, {
+    path: '/image-list',
+    element: <ImageList />
   }
 ])
 
