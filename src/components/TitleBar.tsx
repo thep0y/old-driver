@@ -1,8 +1,18 @@
 import React from 'react'
 import { appWindow } from '@tauri-apps/api/window'
+import { listen, TauriEvent } from '@tauri-apps/api/event'
 import { Tooltip } from 'antd'
 import { CloseOutlined } from '@ant-design/icons'
 import '~/styles/titleBar.scss'
+
+void listen<string>(TauriEvent.WINDOW_BLUR, (event) => {
+  console.log(event)
+  const svg = document.querySelector('#titlebar-close svg')
+  if (svg != null) {
+    console.log('失焦');
+    (svg as SVGAElement).style.color = 'black'
+  }
+})
 
 interface MaximizeState {
   isMaximize: boolean
@@ -28,11 +38,21 @@ class TitleBar extends React.Component<any, MaximizeState> {
   }
 
   changeCloseColor = (e: any): void => {
-    (e.target != null) && ((e.target as HTMLElement).style.color = 'white')
+    if (e.target != null) {
+      const svg = (e.target as HTMLElement).querySelector('svg')
+      if (svg != null) {
+        svg.style.color = 'white'
+      }
+    }
   }
 
   restoreCloseColor = (e: any): void => {
-    (e.target != null) && ((e.target as HTMLElement).style.color = 'black')
+    if (e.target != null) {
+      const svg = (e.target as HTMLElement).querySelector('svg')
+      if (svg != null) {
+        svg.style.color = 'black'
+      }
+    }
   }
 
   render (): React.ReactNode {
