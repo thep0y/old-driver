@@ -16,6 +16,10 @@
       "protocol": {
         "asset": true
       },
+      "dialog": {
+        "all": false,
+        "open": true
+      },
       "shell": {
         "open": "^[a-zA-Z]:\\\\|^[a-zA-Z]:/[A-Za-z.]|^/[A-Za-z]|^https?://"
       }
