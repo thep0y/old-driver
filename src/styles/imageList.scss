@@ -1,0 +1,19 @@
+/*
+ * author   thepoy
+ * file     imageList.scss
+ * created  2023-03-09 11:46:24
+ * modified 2023-03-09 11:46:24
+ */
+
+#image-list {
+  .ant-card-body {
+    padding: 5px;
+    text-align: center;
+
+    .ant-card-meta-title {
+      font-size: 14px;
+      font-weight: normal;
+      color: rgb(135, 135, 135);
+    }
+  }
+}

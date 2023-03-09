@@ -1,31 +1,31 @@
 import React from 'react'
 import { Card } from 'antd'
 import { useLocation } from 'react-router-dom'
+import '~/styles/imageList.scss'
 
 const { Meta } = Card
 
 interface State {
-  images: string[]
+  images: ImageItem[]
 }
 
 const ImageList: React.FC = () => {
   const location = useLocation()
   const { state }: { state: State } = location
-  console.log(state.images)
 
   return (
-      <Card
-        hoverable
-        style={{ width: 180 }}
-        cover={
-          <img
-            alt="example"
-            src="https://os.alipayobjects.com/rmsportal/QBnOOoLaAfKPirc.png"
-          />
-        }
-      >
-        <Meta title="Europe Street beat" description="www.instagram.com" />
-      </Card>
+    <div id="image-list">
+      {state.images.map((item, idx) => (
+        <Card
+          key={idx}
+          hoverable
+          style={{ width: 180 }}
+          cover={<img alt="example" src={item.url} />}
+        >
+          <Meta title={item.name} />
+        </Card>
+      ))}
+    </div>
   )
 }
 

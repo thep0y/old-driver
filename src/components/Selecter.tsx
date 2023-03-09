@@ -3,8 +3,10 @@ import { InboxOutlined } from '@ant-design/icons'
 import { message } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import type { NavigateFunction } from 'react-router-dom'
-import '~/styles/selecter.scss'
 import { open } from '@tauri-apps/api/dialog'
+import { convertFileSrc } from '@tauri-apps/api/tauri'
+import { path } from '@tauri-apps/api'
+import '~/styles/selecter.scss'
 
 const select = async (navigate: NavigateFunction): Promise<void> => {
   const selected = await open({
@@ -17,10 +19,24 @@ const select = async (navigate: NavigateFunction): Promise<void> => {
     ]
   })
 
-  if (selected !== null) {
-    navigate('/image-list', { state: { images: selected } })
-  } else {
+  if (selected === null) {
     void message.warning('未选择任何文件')
+    return
+  }
+
+  if (Array.isArray(selected)) {
+    const images: ImageItem[] = []
+    for (const v of selected) {
+      const name = await path.basename(v)
+
+      images.push({
+        url: convertFileSrc(v),
+        name
+      })
+    }
+    navigate('/image-list', { state: { images } })
+  } else {
+    navigate('/image-list', { state: { images: [{ url: convertFileSrc(selected), name: await path.basename(selected) }] } })
   }
 }
 const Selecter: React.FC = () => {

@@ -24,6 +24,9 @@
         "unminimize": true,
         "startDragging": true
       },
+      "path": {
+        "all": true
+      },
       "protocol": {
         "asset": true
       },
