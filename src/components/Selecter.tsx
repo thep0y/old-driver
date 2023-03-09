@@ -31,6 +31,7 @@ const select = async (navigate: NavigateFunction): Promise<void> => {
 
       images.push({
         url: convertFileSrc(v),
+        path: v,
         name
       })
     }

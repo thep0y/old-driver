@@ -7,5 +7,6 @@
 
 declare interface ImageItem {
   url: string
+  path: string
   name: string
 }

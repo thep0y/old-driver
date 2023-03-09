@@ -1,6 +1,7 @@
 import React from 'react'
-import { Card } from 'antd'
+import { Card, List } from 'antd'
 import { useLocation } from 'react-router-dom'
+import { open } from '@tauri-apps/api/shell'
 import '~/styles/imageList.scss'
 
 const { Meta } = Card
@@ -15,16 +16,29 @@ const ImageList: React.FC = () => {
 
   return (
     <div id="image-list">
-      {state.images.map((item, idx) => (
-        <Card
-          key={idx}
-          hoverable
-          style={{ width: 180 }}
-          cover={<img alt="example" src={item.url} />}
-        >
-          <Meta title={item.name} />
-        </Card>
-      ))}
+      <List
+          grid={{
+            gutter: 16,
+            xs: 2,
+            sm: 2,
+            md: 4,
+            lg: 4,
+            xl: 6,
+            xxl: 3
+          }}
+        dataSource={state.images}
+        renderItem={(item) => (
+          <List.Item>
+            <Card
+              hoverable
+              style={{ width: 226, height: 319 }}
+              cover={<img alt={item.name} src={item.url} onClick={async () => { await open(item.path) }}/>}
+            >
+              <Meta title={item.name} />
+            </Card>
+          </List.Item>
+        )}
+      />
     </div>
   )
 }
