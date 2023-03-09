@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { Card, List, Button, Tooltip, FloatButton } from 'antd'
+import { Card, List, Button, Tooltip, FloatButton, message } from 'antd'
 import {
   EyeOutlined,
   DeleteOutlined,
-  MergeCellsOutlined
+  MergeCellsOutlined,
+  RedoOutlined,
+  UndoOutlined,
+  SettingOutlined
 } from '@ant-design/icons'
 import { useLocation } from 'react-router-dom'
 import { open } from '@tauri-apps/api/shell'
@@ -54,6 +57,45 @@ const Actions: React.FC<ActionsProps> = (props) => {
           icon={<DeleteOutlined />}
           onClick={() => {
             props.removeImage(props.path)
+          }}
+        />
+      </Tooltip>
+      <Tooltip
+        placement="left"
+        title="向右旋转 90 度"
+        color={'rgba(0, 0, 0, 0.6)'}
+      >
+        <Button
+          type="text"
+          icon={<RedoOutlined />}
+          onClick={() => {
+            void message.warning('尚未实现此功能')
+          }}
+        />
+      </Tooltip>
+      <Tooltip
+        placement="left"
+        title="向左旋转 90 度"
+        color={'rgba(0, 0, 0, 0.6)'}
+      >
+        <Button
+          type="text"
+          icon={<UndoOutlined />}
+          onClick={() => {
+            void message.warning('尚未实现此功能')
+          }}
+        />
+      </Tooltip>
+      <Tooltip
+        placement="left"
+        title="设置图片样式"
+        color={'rgba(0, 0, 0, 0.6)'}
+      >
+        <Button
+          type="text"
+          icon={<SettingOutlined />}
+          onClick={() => {
+            void message.warning('尚未实现此功能')
           }}
         />
       </Tooltip>
