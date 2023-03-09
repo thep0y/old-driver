@@ -1,10 +1,12 @@
 import React from 'react'
 import { InboxOutlined } from '@ant-design/icons'
+import { message } from 'antd'
 import { useNavigate } from 'react-router-dom'
+import type { NavigateFunction } from 'react-router-dom'
 import '~/styles/selecter.scss'
 import { open } from '@tauri-apps/api/dialog'
 
-const select = async (): Promise<string[]> => {
+const select = async (navigate: NavigateFunction): Promise<void> => {
   const selected = await open({
     multiple: true,
     filters: [
@@ -15,14 +17,23 @@ const select = async (): Promise<string[]> => {
     ]
   })
 
-  return selected as string[]
+  if (selected !== null) {
+    navigate('/image-list', { state: { images: selected } })
+  } else {
+    void message.warning('未选择任何文件')
+  }
 }
 const Selecter: React.FC = () => {
   const navigate = useNavigate()
-  console.log('打开文件选择页面')
 
   return (
-      <span className="ant-upload-wrapper" id="selecter" onClick={async () => { navigate('/image-list', { state: { images: await select() } }) }}>
+    <span
+      className="ant-upload-wrapper"
+      id="selecter"
+      onClick={async () => {
+        await select(navigate)
+      }}
+    >
       <div className="ant-upload ant-upload-drag">
         <span tabIndex={0} className="ant-upload ant-upload-btn" role="button">
           <div className="ant-upload-drag-container">

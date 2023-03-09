@@ -79,7 +79,8 @@
         "fullscreen": false,
         "height": 600,
         "resizable": true,
-        "hiddenTitle": true
+        "hiddenTitle": true,
+        "title": "PDF老司机"
       }
     ]
   }
