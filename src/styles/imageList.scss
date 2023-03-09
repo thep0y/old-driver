@@ -8,6 +8,7 @@
 #image-list {
   .ant-card-hoverable {
     cursor: inherit;
+    background-color: #00000008;
   }
 
   .ant-col > .ant-list-item {
@@ -18,9 +19,13 @@
   .ant-card-cover {
     text-align: center;
     min-height: 297px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     img {
       max-height: 297px;
+      border-radius: 8px;
     }
   }
 
@@ -31,7 +36,7 @@
     .ant-card-meta-title {
       font-size: 14px;
       font-weight: normal;
-      color: rgb(135, 135, 135);
+      color: #717171;
     }
   }
 
