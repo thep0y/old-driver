@@ -22,7 +22,8 @@ class TitleBar extends React.Component<any, MaximizeState> {
 
   toggleMaximize = async (): Promise<void> => {
     await appWindow.toggleMaximize()
-    this.setState({ isMaximize: !this.state.isMaximize })
+    const { isMaximize } = this.state
+    this.setState({ isMaximize: !isMaximize })
   }
 
   close = async (): Promise<void> => {
@@ -48,20 +49,20 @@ class TitleBar extends React.Component<any, MaximizeState> {
   }
 
   render (): React.ReactNode {
-    const isMaximize = this.state.isMaximize
+    const { isMaximize } = this.state
 
     let toggle, toggleTooltip
     if (isMaximize) {
-      toggle = <img
+      toggle = (<img
         src="https://api.iconify.design/mdi:window-restore.svg"
         alt="minimize"
-      />
+      />)
       toggleTooltip = '恢复'
     } else {
-      toggle = <img
+      toggle = (<img
         src="https://api.iconify.design/mdi:window-maximize.svg"
         alt="minimize"
-      />
+      />)
       toggleTooltip = '最大化'
     }
 
@@ -75,13 +76,20 @@ class TitleBar extends React.Component<any, MaximizeState> {
             />
           </div>
         </Tooltip>
+
         <Tooltip placement="bottom" title={toggleTooltip}>
           <div className="titlebar-button" id="titlebar-maximize" onClick={this.toggleMaximize}>
             {toggle}
           </div>
         </Tooltip>
-        <Tooltip placement="bottomRight" title="关闭" >
-          <div className="titlebar-button" id="titlebar-close" onClick={this.close} onMouseEnter={this.changeCloseColor} onMouseLeave={this.restoreCloseColor}>
+
+        <Tooltip placement="bottomRight" title="关闭">
+          <div
+            className="titlebar-button"
+            id="titlebar-close"
+            onClick={this.close}
+            onMouseEnter={this.changeCloseColor}
+            onMouseLeave={this.restoreCloseColor}>
             <CloseOutlined />
           </div>
         </Tooltip>

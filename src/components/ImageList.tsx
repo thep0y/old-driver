@@ -54,7 +54,9 @@ const ImageList: React.FC = () => {
   return (
     <>
       <div id="image-list">
-        <DndContext sensors={[sensor]} onDragEnd={onDragEnd}>
+        <DndContext
+          sensors={[sensor]}
+          onDragEnd={onDragEnd}>
           <SortableContext
             items={images.map((i) => i.path)}
             strategy={verticalListSortingStrategy}
@@ -100,6 +102,7 @@ const ImageList: React.FC = () => {
           </SortableContext>
         </DndContext>
       </div>
+
       <FloatButton
         type="primary"
         tooltip={<div>合并</div>}

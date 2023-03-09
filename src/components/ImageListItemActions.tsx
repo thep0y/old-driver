@@ -18,37 +18,41 @@ interface ActionsProps {
 const Actions: React.FC<ActionsProps> = (props) => {
   // TODO: hover 时显示，离开后隐藏
 
-  return props.show
+  const { show, path, removeImage } = props
+
+  return show
     ? (
       <div className="actions">
         <Tooltip
           placement="left"
           title="用图片浏览器打开"
-          color={'rgba(0, 0, 0, 0.6)'}
+          color="rgba(0, 0, 0, 0.6)"
         >
           <Button
             type="text"
             shape="circle"
             icon={<EyeOutlined />}
             onClick={async () => {
-              await open(props.path)
+              await open(path)
             }}
           />
         </Tooltip>
-        <Tooltip placement="left" title="移除此图片" color={'rgba(0, 0, 0, 0.6)'}>
+
+        <Tooltip placement="left" title="移除此图片" color="rgba(0, 0, 0, 0.6)">
           <Button
             type="text"
             shape="circle"
             icon={<DeleteOutlined />}
             onClick={() => {
-              props.removeImage(props.path)
+              removeImage(path)
             }}
           />
         </Tooltip>
+
         <Tooltip
           placement="left"
           title="向右旋转 90 度"
-          color={'rgba(0, 0, 0, 0.6)'}
+          color="rgba(0, 0, 0, 0.6)"
           >
           <Button
             type="text"
@@ -59,10 +63,11 @@ const Actions: React.FC<ActionsProps> = (props) => {
             }}
           />
         </Tooltip>
+
         <Tooltip
           placement="left"
           title="向左旋转 90 度"
-          color={'rgba(0, 0, 0, 0.6)'}
+          color="rgba(0, 0, 0, 0.6)"
           >
           <Button
             type="text"
@@ -73,10 +78,11 @@ const Actions: React.FC<ActionsProps> = (props) => {
             }}
           />
         </Tooltip>
+
         <Tooltip
           placement="left"
           title="设置图片样式"
-          color={'rgba(0, 0, 0, 0.6)'}
+          color="rgba(0, 0, 0, 0.6)"
         >
           <Button
             type="text"
