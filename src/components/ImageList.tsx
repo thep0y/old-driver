@@ -45,6 +45,7 @@ const Actions: React.FC<ActionsProps> = (props) => {
       >
         <Button
           type="text"
+          shape="circle"
           icon={<EyeOutlined />}
           onClick={async () => {
             await open(props.path)
@@ -54,6 +55,7 @@ const Actions: React.FC<ActionsProps> = (props) => {
       <Tooltip placement="left" title="移除此图片" color={'rgba(0, 0, 0, 0.6)'}>
         <Button
           type="text"
+          shape="circle"
           icon={<DeleteOutlined />}
           onClick={() => {
             props.removeImage(props.path)
@@ -64,9 +66,10 @@ const Actions: React.FC<ActionsProps> = (props) => {
         placement="left"
         title="向右旋转 90 度"
         color={'rgba(0, 0, 0, 0.6)'}
-      >
+        >
         <Button
           type="text"
+          shape="circle"
           icon={<RedoOutlined />}
           onClick={() => {
             void message.warning('尚未实现此功能')
@@ -77,9 +80,10 @@ const Actions: React.FC<ActionsProps> = (props) => {
         placement="left"
         title="向左旋转 90 度"
         color={'rgba(0, 0, 0, 0.6)'}
-      >
+        >
         <Button
           type="text"
+          shape="circle"
           icon={<UndoOutlined />}
           onClick={() => {
             void message.warning('尚未实现此功能')
@@ -93,6 +97,7 @@ const Actions: React.FC<ActionsProps> = (props) => {
       >
         <Button
           type="text"
+          shape="circle"
           icon={<SettingOutlined />}
           onClick={() => {
             void message.warning('尚未实现此功能')

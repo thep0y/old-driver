@@ -54,7 +54,7 @@
 
     button:hover {
       color: white;
-      background-color: rgba(0, 0, 0, 0.669);
+      background: radial-gradient(circle 16px, rgb(0, 0, 0), rgba(0, 0, 0, 0));
     }
   }
 }
