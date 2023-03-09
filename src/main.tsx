@@ -1,21 +1,28 @@
-import React from 'react'
+import React, { lazy } from 'react'
 import ReactDOM from 'react-dom/client'
-import {
-  createBrowserRouter,
-  RouterProvider
-} from 'react-router-dom'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import '~/styles/index.scss'
-import Selecter from '~/components/Selecter'
 // import TitleBar from '~/components/TitleBar'
-import ImageList from '~/components/ImageList'
+
+const Select = lazy(async () => await import('~/components/Selecter'))
+const ImageList = lazy(async () => await import('~/components/ImageList'))
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Selecter />
-  }, {
+    element: (
+      <React.Suspense>
+        <Select />
+      </React.Suspense>
+    )
+  },
+  {
     path: '/image-list',
-    element: <ImageList />
+    element: (
+      <React.Suspense>
+        <ImageList />
+      </React.Suspense>
+    )
   }
 ])
 
