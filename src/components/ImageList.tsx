@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, lazy } from 'react'
 import { Card, List, FloatButton } from 'antd'
 import { MergeCellsOutlined } from '@ant-design/icons'
 import { useLocation } from 'react-router-dom'
@@ -7,70 +7,22 @@ import { DndContext, PointerSensor, useSensor } from '@dnd-kit/core'
 import {
   arrayMove,
   SortableContext,
-  useSortable,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { css } from '@emotion/css'
 import '~/styles/imageList.scss'
-import Actions from '~/components/ImageListItemActions'
 
 const { Meta } = Card
 
+const Actions = lazy(
+  async () => await import('~/components/ImageListItemActions')
+)
+
+const DraggableImageListItem = lazy(
+  async () => await import('~/components/DraggableImageListItem')
+)
+
 interface State {
   images: ImageItem[]
-}
-
-interface DraggableImageListItemProps {
-  originNode: React.ReactElement<
-  any,
-  string | React.JSXElementConstructor<any>
-  >
-  item: ImageItem
-}
-
-const DraggableImageListItem: React.FC<DraggableImageListItemProps> = ({
-  originNode,
-  item
-}: DraggableImageListItemProps) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging
-  } = useSortable({
-    id: item.path
-  })
-
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    cursor: 'move'
-  }
-
-  // prevent preview event when drag end
-  const className = isDragging
-    ? css`
-        a {
-          pointer-events: none;
-        }
-      `
-    : ''
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={className}
-      {...attributes}
-      {...listeners}
-    >
-      {/* {isDragging ? originNode.props.children : originNode} */}
-      {originNode}
-    </div>
-  )
 }
 
 const ImageList: React.FC = () => {
@@ -119,25 +71,29 @@ const ImageList: React.FC = () => {
               dataSource={images}
               renderItem={(item) => (
                 <List.Item>
-                  <DraggableImageListItem
-                    originNode={
-                      <Card
-                        hoverable
-                        style={{ width: 226, height: 319 }}
-                        cover={<img alt={item.name} src={item.url} />}
-                        extra={
-                          <Actions
-                            show={true}
-                            path={item.path}
-                            removeImage={removeImage}
-                          />
-                        }
-                      >
-                        <Meta title={item.name} />
-                      </Card>
-                    }
-                    item={item}
-                  />
+                  <React.Suspense>
+                    <DraggableImageListItem
+                      originNode={
+                        <Card
+                          hoverable
+                          style={{ width: 226, height: 319 }}
+                          cover={<img alt={item.name} src={item.url} />}
+                          extra={
+                            <React.Suspense>
+                              <Actions
+                                show={true}
+                                path={item.path}
+                                removeImage={removeImage}
+                              />
+                            </React.Suspense>
+                          }
+                        >
+                          <Meta title={item.name} />
+                        </Card>
+                      }
+                      item={item}
+                    />
+                  </React.Suspense>
                 </List.Item>
               )}
             />
