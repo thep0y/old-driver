@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { Card, List, Button, Tooltip, FloatButton } from 'antd'
-import { EyeOutlined, DeleteOutlined } from '@ant-design/icons'
+import {
+  EyeOutlined,
+  DeleteOutlined,
+  MergeCellsOutlined
+} from '@ant-design/icons'
 import { useLocation } from 'react-router-dom'
 import { open } from '@tauri-apps/api/shell'
 import '~/styles/imageList.scss'
@@ -95,7 +99,14 @@ const ImageList: React.FC = () => {
           )}
         />
       </div>
-      <FloatButton tooltip={<div>合并</div>} onClick={() => { console.log('合并为 pdf', images) }}/>
+      <FloatButton
+        type="primary"
+        tooltip={<div>合并</div>}
+        icon={<MergeCellsOutlined />}
+        onClick={() => {
+          console.log('合并为 pdf', images)
+        }}
+      />
     </>
   )
 }
