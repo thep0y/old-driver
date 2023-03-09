@@ -6,9 +6,22 @@
  */
 
 #image-list {
+  .ant-card-hoverable {
+    cursor: auto;
+  }
+
+  .ant-col > .ant-list-item {
+    display: flex;
+    justify-content: center;
+  }
+
   .ant-card-cover {
-    height: 297px;
     text-align: center;
+    min-height: 297px;
+
+    img {
+      max-height: 297px;
+    }
   }
 
   .ant-card-body {
@@ -19,6 +32,24 @@
       font-size: 14px;
       font-weight: normal;
       color: rgb(135, 135, 135);
+    }
+  }
+
+  .ant-card-head {
+    position: absolute;
+    right: 0;
+    border: 0;
+    padding: 0;
+    min-height: 32px;
+
+    button {
+      display: block;
+      color: rgba(0, 0, 0, 0.226);
+    }
+
+    button:hover {
+      color: white;
+      background-color: rgba(0, 0, 0, 0.669);
     }
   }
 }
