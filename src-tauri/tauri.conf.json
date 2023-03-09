@@ -79,8 +79,7 @@
         "fullscreen": false,
         "height": 600,
         "resizable": true,
-        "hiddenTitle": true,
-        "decorations": false
+        "hiddenTitle": true
       }
     ]
   }

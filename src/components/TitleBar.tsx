@@ -12,6 +12,8 @@ class TitleBar extends React.Component<any, MaximizeState> {
   constructor (props: any) {
     super(props)
     this.state = { isMaximize: false }
+
+    console.log('渲染标题栏')
   }
 
   minimize = async (): Promise<void> => {

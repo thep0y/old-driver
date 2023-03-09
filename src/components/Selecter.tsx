@@ -19,7 +19,7 @@ const select = async (): Promise<string[]> => {
 }
 const Selecter: React.FC = () => {
   const navigate = useNavigate()
-  console.log(navigate)
+  console.log('打开文件选择页面')
 
   return (
       <span className="ant-upload-wrapper" id="selecter" onClick={async () => { navigate('/image-list', { state: { images: await select() } }) }}>

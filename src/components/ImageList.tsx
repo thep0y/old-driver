@@ -4,15 +4,19 @@ import { useLocation } from 'react-router-dom'
 
 const { Meta } = Card
 
+interface State {
+  images: string[]
+}
+
 const ImageList: React.FC = () => {
   const location = useLocation()
-  const { state } = location
-  console.log(state)
+  const { state }: { state: State } = location
+  console.log(state.images)
 
   return (
       <Card
         hoverable
-        style={{ width: 240 }}
+        style={{ width: 180 }}
         cover={
           <img
             alt="example"
