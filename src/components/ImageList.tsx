@@ -56,7 +56,8 @@ const ImageList: React.FC = () => {
       <div id="image-list">
         <DndContext
           sensors={[sensor]}
-          onDragEnd={onDragEnd}>
+          onDragEnd={onDragEnd}
+        >
           <SortableContext
             items={images.map((i) => i.path)}
             strategy={verticalListSortingStrategy}
@@ -75,12 +76,12 @@ const ImageList: React.FC = () => {
                 <List.Item>
                   <React.Suspense>
                     <DraggableImageListItem
-                      originNode={
+                      originNode={(
                         <Card
                           hoverable
                           style={{ width: 226, height: 319 }}
                           cover={<img alt={item.name} src={item.url} />}
-                          extra={
+                          extra={(
                             <React.Suspense>
                               <Actions
                                 show={true}
@@ -88,11 +89,11 @@ const ImageList: React.FC = () => {
                                 removeImage={removeImage}
                               />
                             </React.Suspense>
-                          }
+                          )}
                         >
                           <Meta title={item.name} />
                         </Card>
-                      }
+                      )}
                       item={item}
                     />
                   </React.Suspense>

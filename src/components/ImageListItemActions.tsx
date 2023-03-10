@@ -53,7 +53,7 @@ const Actions: React.FC<ActionsProps> = (props) => {
           placement="left"
           title="向右旋转 90 度"
           color="rgba(0, 0, 0, 0.6)"
-          >
+        >
           <Button
             type="text"
             shape="circle"
@@ -68,7 +68,7 @@ const Actions: React.FC<ActionsProps> = (props) => {
           placement="left"
           title="向左旋转 90 度"
           color="rgba(0, 0, 0, 0.6)"
-          >
+        >
           <Button
             type="text"
             shape="circle"

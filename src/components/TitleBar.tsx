@@ -53,16 +53,20 @@ class TitleBar extends React.Component<any, MaximizeState> {
 
     let toggle, toggleTooltip
     if (isMaximize) {
-      toggle = (<img
-        src="https://api.iconify.design/mdi:window-restore.svg"
-        alt="minimize"
-      />)
+      toggle = (
+        <img
+          src="https://api.iconify.design/mdi:window-restore.svg"
+          alt="minimize"
+        />
+      )
       toggleTooltip = '恢复'
     } else {
-      toggle = (<img
-        src="https://api.iconify.design/mdi:window-maximize.svg"
-        alt="minimize"
-      />)
+      toggle = (
+        <img
+          src="https://api.iconify.design/mdi:window-maximize.svg"
+          alt="minimize"
+        />
+      )
       toggleTooltip = '最大化'
     }
 
@@ -89,7 +93,8 @@ class TitleBar extends React.Component<any, MaximizeState> {
             id="titlebar-close"
             onClick={this.close}
             onMouseEnter={this.changeCloseColor}
-            onMouseLeave={this.restoreCloseColor}>
+            onMouseLeave={this.restoreCloseColor}
+          >
             <CloseOutlined />
           </div>
         </Tooltip>
