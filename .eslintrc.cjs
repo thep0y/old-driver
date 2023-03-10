@@ -23,6 +23,11 @@ module.exports = {
     sourceType: "module",
   },
   plugins: ["react"],
+  settings: {
+    react: {
+      version: "detect",
+    },
+  },
   rules: {
     "function-paren-newline": [WARNING, "consistent"],
     "@typescript-eslint/no-misused-promises": [
