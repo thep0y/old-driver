@@ -29,6 +29,16 @@ module.exports = {
     },
   },
   rules: {
+    "padding-line-between-statements": [
+      "error",
+      { blankLine: "always", prev: "*", next: "return" }, // return 前必须空一行
+      { blankLine: "always", prev: ["const", "let", "var"], next: "*" }, // 变量声名之后必须空一行
+      {
+        blankLine: "any",
+        prev: ["const", "let", "var"],
+        next: ["const", "let", "var"],
+      }, // 变量声名之后必须空一行
+    ],
     "function-paren-newline": [WARNING, "consistent"],
     "@typescript-eslint/no-misused-promises": [
       ERROR,
