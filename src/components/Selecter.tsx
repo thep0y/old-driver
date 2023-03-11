@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { InboxOutlined } from '@ant-design/icons'
 import { message } from 'antd'
 import { useNavigate } from 'react-router-dom'
@@ -6,7 +6,25 @@ import type { NavigateFunction } from 'react-router-dom'
 import { open } from '@tauri-apps/api/dialog'
 import { convertFileSrc } from '@tauri-apps/api/tauri'
 import { path } from '@tauri-apps/api'
+import { TauriEvent } from '@tauri-apps/api/event'
+import { appWindow } from '@tauri-apps/api/window'
 import '~/styles/selecter.scss'
+
+const convert = async (src: string[]): Promise<ImageItem[]> => {
+  const images: ImageItem[] = []
+
+  for (const v of src) {
+    const name = await path.basename(v)
+
+    images.push({
+      url: convertFileSrc(v),
+      path: v,
+      name
+    })
+  }
+
+  return images
+}
 
 const select = async (navigate: NavigateFunction): Promise<void> => {
   const selected = await open({
@@ -21,27 +39,25 @@ const select = async (navigate: NavigateFunction): Promise<void> => {
 
   if (selected === null) {
     void message.warning('未选择任何文件')
+
     return
   }
 
   if (Array.isArray(selected)) {
-    const images: ImageItem[] = []
-    for (const v of selected) {
-      const name = await path.basename(v)
-
-      images.push({
-        url: convertFileSrc(v),
-        path: v,
-        name
-      })
-    }
-    navigate('/image-list', { state: { images } })
+    navigate('/image-list', { state: { images: await convert(selected) } })
   } else {
     navigate('/image-list', { state: { images: [{ url: convertFileSrc(selected), name: await path.basename(selected) }] } })
   }
 }
+
 const Selecter: React.FC = () => {
   const navigate = useNavigate()
+
+  useEffect(() => {
+    void appWindow.listen<string[]>(TauriEvent.WINDOW_FILE_DROP, async (e) => {
+      navigate('/image-list', { state: { images: await convert(e.payload) } })
+    })
+  })
 
   return (
     <span
