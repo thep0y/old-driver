@@ -9,9 +9,10 @@ use std::path::Path;
 use crate::models;
 
 struct ImageObject;
+struct Size(u32, u32);
 
 impl ImageObject {
-    fn new<P: AsRef<Path>>(path: P) -> Result<Stream> {
+    fn new<P: AsRef<Path>>(path: P) -> Result<(Stream, Size)> {
         let mut file = File::open(&path)?;
         let mut buffer = Vec::new();
         file.read_to_end(&mut buffer)?;
@@ -19,7 +20,7 @@ impl ImageObject {
         Self::image_from(buffer)
     }
 
-    fn image_from(buffer: Vec<u8>) -> Result<Stream> {
+    fn image_from(buffer: Vec<u8>) -> Result<(Stream, Size)> {
         let img = image::load_from_memory(buffer.as_ref())?;
 
         let (width, height) = img.dimensions();
@@ -55,14 +56,14 @@ impl ImageObject {
                 let mut img_object = Stream::new(dict, img.into_bytes());
                 // Ignore any compression error.
                 let _ = img_object.compress();
-                return Ok(img_object);
+                return Ok((img_object, Size(width, height)));
             }
         };
 
         match image_fmt {
             ImageFormat::Jpeg => {
                 dict.set("Filter", Object::Name(b"DCTDecode".to_vec()));
-                return Ok(Stream::new(dict, buffer));
+                return Ok((Stream::new(dict, buffer), Size(width, height)));
             }
             ImageFormat::Png => {
                 // NOTE: png 图片保存到 pdf 中时不保留其 alpha 通道。
@@ -87,7 +88,7 @@ impl ImageObject {
                 let mut img_object = Stream::new(dict, output.to_vec());
                 // Ignore any compression error.
                 let _ = img_object.compress();
-                return Ok(img_object);
+                return Ok((img_object, Size(width, height)));
 
                 // NOTE: 如果上面的逻辑仍有问题，后续改用转换为 jpg 后递归完成。
                 // output
@@ -99,7 +100,7 @@ impl ImageObject {
                 let mut img_object = Stream::new(dict, img.into_bytes());
                 // Ignore any compression error.
                 let _ = img_object.compress();
-                return Ok(img_object);
+                return Ok((img_object, Size(width, height)));
             }
         }
     }
@@ -117,9 +118,15 @@ fn add_image_object(doc: &mut Document, image: &models::Image, pages_id: ObjectI
         "Contents" => content_id,
     });
 
-    let image_stream = ImageObject::new(&image.path).unwrap();
+    let (image_stream, size) = ImageObject::new(&image.path).unwrap();
 
-    let result = doc.insert_image(page_id, image_stream, (30.0, 300.0), (536.7, 405.8));
+    // TODO: 原点和 size 还需要调整。
+    let result = doc.insert_image(
+        page_id,
+        image_stream,
+        (0., 0.0),
+        (size.0 as f32, size.1 as f32),
+    );
     if result.is_err() {
         println!("error: {:?}", result.err().unwrap().to_string());
     }
