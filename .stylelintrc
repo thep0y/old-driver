@@ -1,5 +1,6 @@
 {
   "plugins": ["stylelint-scss"],
+  "ignoreFiles": ["dist/**/*.css"],
   "rules": {
     "at-rule-no-unknown": null,
     "at-rule-empty-line-before": [
