@@ -1,5 +1,4 @@
 use image::{ColorType, GenericImageView, ImageFormat, Pixel, RgbImage};
-use lopdf::content::Content;
 use lopdf::{dictionary, ObjectId};
 use lopdf::{Dictionary, Document, Object, Result, Stream};
 use std::fs::File;
