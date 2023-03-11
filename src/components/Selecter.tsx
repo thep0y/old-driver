@@ -77,7 +77,7 @@ const Selecter: React.FC = () => {
             <p className="ant-upload-text">选择图片或 PDF 文件</p>
 
             <p className="ant-upload-hint">
-              单击打开文件管理器选择文件或直接在文件管理器中将目标文件拖拽到此窗口
+              单击打开文件管理器选择文件或将目标文件拖拽到此窗口
             </p>
           </div>
         </span>
