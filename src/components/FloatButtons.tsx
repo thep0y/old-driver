@@ -1,11 +1,32 @@
 import React from 'react'
-import { FloatButton, message } from 'antd'
-import { MergeCellsOutlined, QuestionCircleOutlined, ReloadOutlined, PlusOutlined } from '@ant-design/icons'
+import { FloatButton, message, Modal } from 'antd'
+import {
+  MergeCellsOutlined,
+  QuestionCircleOutlined,
+  ReloadOutlined,
+  PlusOutlined
+} from '@ant-design/icons'
 import { invoke } from '@tauri-apps/api'
 import { save } from '@tauri-apps/api/dialog'
 import { open } from '@tauri-apps/api/shell'
 import { documentDir } from '@tauri-apps/api/path'
+import { getVersion } from '@tauri-apps/api/app'
 import { selectImages } from '~/lib'
+
+const version = async (): Promise<void> => {
+  Modal.info({
+    title: '关于',
+    content: (
+      <div>
+        <p>
+          当前版本：
+          {await getVersion()}
+        </p>
+      </div>
+    ),
+    onOk () {}
+  })
+}
 
 interface Props {
   images: ImageItem[]
@@ -21,13 +42,13 @@ const FloatButtons: React.FC<Props> = (props) => {
       <FloatButton
         icon={<QuestionCircleOutlined />}
         tooltip={<div>帮助</div>}
-        onClick={() => { void message.warning('未实现此功能') }}
+        onClick={version}
       />
 
       <FloatButton
         icon={<PlusOutlined />}
         tooltip={<div>添加新图片</div>}
-        onClick={ async () => {
+        onClick={async () => {
           const selected = await selectImages()
 
           if (selected == null) return null
@@ -39,22 +60,26 @@ const FloatButtons: React.FC<Props> = (props) => {
       <FloatButton
         icon={<ReloadOutlined />}
         tooltip={<div>清空</div>}
-        onClick={() => { setImages([]) }}
+        onClick={() => {
+          setImages([])
+        }}
       />
 
       <FloatButton
         type="primary"
         tooltip={<div>合并</div>}
         icon={<MergeCellsOutlined />}
-        onClick={ async () => {
-          const defaultPath = await documentDir() + '/合并.pdf'
+        onClick={async () => {
+          const defaultPath = (await documentDir()) + '/合并.pdf'
 
           const filePath = await save({
             title: '保存',
-            filters: [{
-              name: 'PDF',
-              extensions: ['pdf']
-            }],
+            filters: [
+              {
+                name: 'PDF',
+                extensions: ['pdf']
+              }
+            ],
             defaultPath
           })
 
@@ -67,7 +92,10 @@ const FloatButtons: React.FC<Props> = (props) => {
           setLoading(true)
 
           try {
-            await invoke<null>('merge_images_to_pdf', { output: filePath, images })
+            await invoke<null>('merge_images_to_pdf', {
+              output: filePath,
+              images
+            })
 
             // 使用系统默认阅读器打开 pdf
             await open(filePath)
