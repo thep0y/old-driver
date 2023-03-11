@@ -9,7 +9,7 @@
   height: 100%;
 
   .ant-spin-spinning {
-    height: 100%;
+    position: fixed !important;
     max-height: 100% !important;
   }
 }
