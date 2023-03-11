@@ -23,6 +23,7 @@ class TitleBar extends React.Component<any, MaximizeState> {
   toggleMaximize = async (): Promise<void> => {
     await appWindow.toggleMaximize()
     const { isMaximize } = this.state
+
     this.setState({ isMaximize: !isMaximize })
   }
 
@@ -33,6 +34,7 @@ class TitleBar extends React.Component<any, MaximizeState> {
   changeCloseColor = (e: any): void => {
     if (e.target != null) {
       const svg = (e.target as HTMLElement).querySelector('svg')
+
       if (svg != null) {
         svg.style.color = 'white'
       }
@@ -42,6 +44,7 @@ class TitleBar extends React.Component<any, MaximizeState> {
   restoreCloseColor = (e: any): void => {
     if (e.target != null) {
       const svg = (e.target as HTMLElement).querySelector('svg')
+
       if (svg != null) {
         svg.style.color = 'black'
       }
@@ -52,6 +55,7 @@ class TitleBar extends React.Component<any, MaximizeState> {
     const { isMaximize } = this.state
 
     let toggle, toggleTooltip
+
     if (isMaximize) {
       toggle = (
         <img
