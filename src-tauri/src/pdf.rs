@@ -16,6 +16,15 @@ impl From<ImageSize> for (f32, f32) {
     }
 }
 
+#[derive(Debug)]
+struct Position(f64, f64);
+
+impl From<Position> for (f32, f32) {
+    fn from(value: Position) -> Self {
+        (value.0 as f32, value.1 as f32)
+    }
+}
+
 pub struct PageSize(pub f64, pub f64);
 
 #[derive(Debug)]
@@ -47,17 +56,17 @@ pub fn page_size(page_type: &PageType) -> PageSize {
 struct ImageObject {}
 
 impl ImageObject {
-    fn new(path: &PathBuf, page_size: &PageSize) -> Result<(Stream, ImageSize)> {
+    fn new(path: &PathBuf) -> Result<(Stream, ImageSize)> {
         let mut file = File::open(&path)?;
         let mut buffer = Vec::new();
         file.read_to_end(&mut buffer)?;
 
         debug!("打开一张图片: {:?}", path);
 
-        Self::image_from(buffer, page_size)
+        Self::image_from(buffer)
     }
 
-    fn image_from(buffer: Vec<u8>, page_size: &PageSize) -> Result<(Stream, ImageSize)> {
+    fn image_from(buffer: Vec<u8>) -> Result<(Stream, ImageSize)> {
         let img = image::load_from_memory(buffer.as_ref())?;
 
         let (width, height) = img.dimensions();
@@ -197,6 +206,7 @@ impl PDF {
 
         if scale_width <= 1. && scale_height <= 1. {
             if scale_width < scale_height {
+                let scaled = ImageSize(image_width * scale_width, image_height * scale_width);
                 return ImageSize(image_width * scale_width, image_height * scale_width);
             }
 
@@ -225,14 +235,20 @@ impl PDF {
     fn add_image(&mut self, image: &models::Image) -> Result<ObjectId> {
         let page_id = self.add_blank_page();
 
-        let (image_stream, image_size) = ImageObject::new(&image.path, &self.page_size)?;
+        let (image_stream, image_size) = ImageObject::new(&image.path)?;
 
         let scaled = self.scale(&image_size);
         debug!("图片缩放尺寸 {:?}", scaled);
 
+        let position = Position(
+            (self.page_size.0 - scaled.0) / 2.0,
+            (self.page_size.1 - scaled.1) / 2.0,
+        );
+
         let result = self
             .doc
-            .insert_image(page_id, image_stream, (0., 0.0), scaled.into());
+            .insert_image(page_id, image_stream, position.into(), scaled.into());
+
         if result.is_err() {
             let err = result.err().unwrap();
             error!("添加图片时出错: {:?}", err.to_string());
