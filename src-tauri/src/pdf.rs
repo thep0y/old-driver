@@ -7,7 +7,14 @@ use std::path::PathBuf;
 
 use crate::models;
 
-struct ImageSize(u32, u32);
+#[derive(Debug)]
+struct ImageSize(f64, f64);
+
+impl From<ImageSize> for (f32, f32) {
+    fn from(value: ImageSize) -> Self {
+        (value.0 as f32, value.1 as f32)
+    }
+}
 
 pub struct PageSize(pub f64, pub f64);
 
@@ -37,23 +44,24 @@ pub fn page_size(page_type: &PageType) -> PageSize {
     }
 }
 
-struct ImageObject;
+struct ImageObject {}
 
 impl ImageObject {
-    fn new(path: &PathBuf) -> Result<(Stream, ImageSize)> {
+    fn new(path: &PathBuf, page_size: &PageSize) -> Result<(Stream, ImageSize)> {
         let mut file = File::open(&path)?;
         let mut buffer = Vec::new();
         file.read_to_end(&mut buffer)?;
 
         debug!("打开一张图片: {:?}", path);
 
-        Self::image_from(buffer)
+        Self::image_from(buffer, page_size)
     }
 
-    fn image_from(buffer: Vec<u8>) -> Result<(Stream, ImageSize)> {
+    fn image_from(buffer: Vec<u8>, page_size: &PageSize) -> Result<(Stream, ImageSize)> {
         let img = image::load_from_memory(buffer.as_ref())?;
 
         let (width, height) = img.dimensions();
+        debug!("图片尺寸：width={}, height={}", width, height);
 
         // It looks like Adobe Illustrator uses a predictor offset of 2 bytes rather than 1 byte as
         // the PNG specification suggests. This seems to come from the fact that the PNG specification
@@ -87,7 +95,7 @@ impl ImageObject {
                 let mut img_object = Stream::new(dict, img.into_bytes());
                 // Ignore any compression error.
                 let _ = img_object.compress();
-                return Ok((img_object, ImageSize(width, height)));
+                return Ok((img_object, ImageSize(width as f64, height as f64)));
             }
         };
 
@@ -96,7 +104,10 @@ impl ImageObject {
         match image_fmt {
             ImageFormat::Jpeg => {
                 dict.set("Filter", Object::Name(b"DCTDecode".to_vec()));
-                return Ok((Stream::new(dict, buffer), ImageSize(width, height)));
+                return Ok((
+                    Stream::new(dict, buffer),
+                    ImageSize(width as f64, height as f64),
+                ));
             }
             ImageFormat::Png => {
                 // NOTE: png 图片保存到 pdf 中时不保留其 alpha 通道。
@@ -121,7 +132,7 @@ impl ImageObject {
                 let mut img_object = Stream::new(dict, output.to_vec());
                 // Ignore any compression error.
                 let _ = img_object.compress();
-                return Ok((img_object, ImageSize(width, height)));
+                return Ok((img_object, ImageSize(width as f64, height as f64)));
 
                 // NOTE: 如果上面的逻辑仍有问题，后续改用转换为 jpg 后递归完成。
                 // output
@@ -133,7 +144,7 @@ impl ImageObject {
                 let mut img_object = Stream::new(dict, img.into_bytes());
                 // Ignore any compression error.
                 let _ = img_object.compress();
-                return Ok((img_object, ImageSize(width, height)));
+                return Ok((img_object, ImageSize(width as f64, height as f64)));
             }
         }
     }
@@ -178,16 +189,50 @@ impl PDF {
         page_id
     }
 
+    fn scale(&self, image_size: &ImageSize) -> ImageSize {
+        let (image_width, image_height) = (image_size.0 as f64, image_size.1 as f64);
+        let (page_width, page_height) = (self.page_size.0, self.page_size.1);
+
+        let (scale_width, scale_height) = (image_width / page_width, image_height / page_height);
+
+        if scale_width <= 1. && scale_height <= 1. {
+            if scale_width < scale_height {
+                return ImageSize(image_width * scale_width, image_height * scale_width);
+            }
+
+            return ImageSize(image_width * scale_height, image_height * scale_height);
+        }
+
+        if scale_width <= 1. && scale_height > 1. {
+            return ImageSize(image_width / scale_height, image_height / scale_height);
+        }
+
+        if scale_width > 1. && scale_height <= 1. {
+            return ImageSize(image_width / scale_width, image_height / scale_width);
+        }
+
+        if scale_width > 1. && scale_height > 1. {
+            if scale_width < scale_height {
+                return ImageSize(image_width / scale_height, image_height / scale_height);
+            }
+
+            return ImageSize(image_width / scale_width, image_height / scale_width);
+        }
+
+        ImageSize(image_width, image_height)
+    }
+
     fn add_image(&mut self, image: &models::Image) -> Result<ObjectId> {
         let page_id = self.add_blank_page();
 
-        let (image_stream, size) = ImageObject::new(&image.path)?;
-        let result = self.doc.insert_image(
-            page_id,
-            image_stream,
-            (0., 0.0),
-            (size.0 as f32, size.1 as f32),
-        );
+        let (image_stream, image_size) = ImageObject::new(&image.path, &self.page_size)?;
+
+        let scaled = self.scale(&image_size);
+        debug!("图片缩放尺寸 {:?}", scaled);
+
+        let result = self
+            .doc
+            .insert_image(page_id, image_stream, (0., 0.0), scaled.into());
         if result.is_err() {
             let err = result.err().unwrap();
             error!("添加图片时出错: {:?}", err.to_string());
