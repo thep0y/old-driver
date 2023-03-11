@@ -3,23 +3,54 @@ use lopdf::{dictionary, ObjectId};
 use lopdf::{Dictionary, Document, Object, Result, Stream};
 use std::fs::File;
 use std::io::prelude::*;
-use std::path::Path;
+use std::path::PathBuf;
 
 use crate::models;
 
+struct ImageSize(u32, u32);
+
+pub struct PageSize(pub f64, pub f64);
+
+#[derive(Debug)]
+pub enum PageType {
+    // Letter,
+    // A0,
+    // A1,
+    // A2,
+    // A3,
+    A4,
+    // A5,
+    // A6,
+    // B0,
+    // B1,
+    // B2,
+    // B3,
+    // B4,
+    // B5,
+    // B6,
+}
+
+pub fn page_size(page_type: &PageType) -> PageSize {
+    match *page_type {
+        // PageType::Letter => PageSize(612.0, 792.0),
+        PageType::A4 => PageSize(595.2756, 841.8898),
+    }
+}
+
 struct ImageObject;
-struct Size(u32, u32);
 
 impl ImageObject {
-    fn new<P: AsRef<Path>>(path: P) -> Result<(Stream, Size)> {
+    fn new(path: &PathBuf) -> Result<(Stream, ImageSize)> {
         let mut file = File::open(&path)?;
         let mut buffer = Vec::new();
         file.read_to_end(&mut buffer)?;
 
+        debug!("打开一张图片: {:?}", path);
+
         Self::image_from(buffer)
     }
 
-    fn image_from(buffer: Vec<u8>) -> Result<(Stream, Size)> {
+    fn image_from(buffer: Vec<u8>) -> Result<(Stream, ImageSize)> {
         let img = image::load_from_memory(buffer.as_ref())?;
 
         let (width, height) = img.dimensions();
@@ -29,6 +60,7 @@ impl ImageObject {
         // doesn't allow 4-bit color images (only 8-bit and 16-bit color). With 1-bit, 2-bit and 4-bit
         // mono images there isn't the same problem because there's only one component.
         let bits = img.color().bits_per_pixel() / 3;
+        debug!("图片色深为 {}", bits);
 
         let color_space = match img.color() {
             ColorType::L8 => b"DeviceGray".to_vec(),
@@ -55,14 +87,16 @@ impl ImageObject {
                 let mut img_object = Stream::new(dict, img.into_bytes());
                 // Ignore any compression error.
                 let _ = img_object.compress();
-                return Ok((img_object, Size(width, height)));
+                return Ok((img_object, ImageSize(width, height)));
             }
         };
+
+        debug!("图片类型为 {:?}", image_fmt);
 
         match image_fmt {
             ImageFormat::Jpeg => {
                 dict.set("Filter", Object::Name(b"DCTDecode".to_vec()));
-                return Ok((Stream::new(dict, buffer), Size(width, height)));
+                return Ok((Stream::new(dict, buffer), ImageSize(width, height)));
             }
             ImageFormat::Png => {
                 // NOTE: png 图片保存到 pdf 中时不保留其 alpha 通道。
@@ -87,7 +121,7 @@ impl ImageObject {
                 let mut img_object = Stream::new(dict, output.to_vec());
                 // Ignore any compression error.
                 let _ = img_object.compress();
-                return Ok((img_object, Size(width, height)));
+                return Ok((img_object, ImageSize(width, height)));
 
                 // NOTE: 如果上面的逻辑仍有问题，后续改用转换为 jpg 后递归完成。
                 // output
@@ -99,61 +133,122 @@ impl ImageObject {
                 let mut img_object = Stream::new(dict, img.into_bytes());
                 // Ignore any compression error.
                 let _ = img_object.compress();
-                return Ok((img_object, Size(width, height)));
+                return Ok((img_object, ImageSize(width, height)));
             }
         }
     }
 }
 
-fn add_image_object(
-    doc: &mut Document,
-    page_type: models::PageType,
-    image: &models::Image,
+struct PDF {
+    doc: Document,
     pages_id: ObjectId,
-) -> ObjectId {
-    // 需要有一个空 content 占位
-    let content_id = doc.add_object(Stream::new(dictionary! {}, vec![]));
+    page_size: PageSize,
+}
 
-    let page_size = page_type.size();
-    // 插入图片 START
-    let page_id = doc.add_object(dictionary! {
-        "Type" => "Page",
-        "Parent" => pages_id,
-        "MediaBox" => vec![0.0.into(),0.0.into(),page_size.0.into(), page_size.1.into()],
-        "Contents" => content_id,
-    });
+impl PDF {
+    pub fn new(page_type: PageType) -> PDF {
+        let mut doc = Document::with_version("1.5");
 
-    let (image_stream, size) = ImageObject::new(&image.path).unwrap();
+        let pages_id = doc.new_object_id();
 
-    let result = doc.insert_image(
-        page_id,
-        image_stream,
-        (0., 0.0),
-        (size.0 as f32, size.1 as f32),
-    );
-    if result.is_err() {
-        println!("error: {:?}", result.err().unwrap().to_string());
+        let page_size = page_size(&page_type);
+
+        debug!("创建一个新的 pdf 对象，页面类型 为 {:?}", page_type);
+
+        PDF {
+            doc,
+            pages_id,
+            page_size,
+        }
     }
-    // 插入图片 END
 
-    page_id
+    fn add_blank_page(&mut self) -> ObjectId {
+        // 需要有一个空 content 占位
+        let content_id = self.doc.add_object(Stream::new(dictionary! {}, vec![]));
+
+        let page_id = self.doc.add_object(dictionary! {
+            "Type" => "Page",
+            "Parent" => self.pages_id,
+            "MediaBox" => vec![0.0.into(), 0.0.into(), self.page_size.0.into(), self.page_size.1.into()],
+            "Contents" => content_id,
+        });
+
+        debug!("添加一个空页面 {:?}", page_id);
+
+        page_id
+    }
+
+    fn add_image(&mut self, image: &models::Image) -> Result<ObjectId> {
+        let page_id = self.add_blank_page();
+
+        let (image_stream, size) = ImageObject::new(&image.path)?;
+        let result = self.doc.insert_image(
+            page_id,
+            image_stream,
+            (0., 0.0),
+            (size.0 as f32, size.1 as f32),
+        );
+        if result.is_err() {
+            let err = result.err().unwrap();
+            error!("添加图片时出错: {:?}", err.to_string());
+            return Err(err);
+        }
+
+        debug!("添加一图片 {:?}", image.path);
+
+        Ok(page_id)
+    }
+
+    fn insert_pages(&mut self, pages: Dictionary) {
+        self.doc
+            .objects
+            .insert(self.pages_id, Object::Dictionary(pages));
+
+        trace!("添加所有页面");
+    }
+
+    fn create_catalog(&mut self) {
+        let catalog_id = self.doc.add_object(dictionary! {
+            "Type" => "Catalog",
+            "Pages" => self.pages_id,
+        });
+        trace!("已创建目录 {:?}", catalog_id);
+
+        self.doc.trailer.set("Root", catalog_id);
+        debug!("已添加目录 {:?}", catalog_id);
+
+        self.doc.compress();
+        trace!("文档已压缩");
+    }
+
+    fn save(&mut self, output: PathBuf) -> std::io::Result<()> {
+        match self.doc.save(&output) {
+            Ok(_) => {
+                info!("已保存 pdf 文件：{:?}", output);
+                Ok(())
+            }
+            Err(e) => {
+                error!("保存文件时出错：{}", e);
+                return Err(e);
+            }
+        }
+    }
 }
 
 /// 把图片嵌入 pdf
-pub fn embedd_images_to_new_pdf<P: AsRef<Path>>(output: P, images: Vec<models::Image>) {
-    let mut doc = Document::with_version("1.5");
-    let pages_id = doc.new_object_id();
-
-    // // 需要有一个空 content 占位
-    // let content = Content { operations: [] };
-    // let content_id = doc.add_object(Stream::new(dictionary! {}, content.encode().unwrap()));
+pub fn embedd_images_to_new_pdf(
+    output: PathBuf,
+    images: Vec<models::Image>,
+) -> std::result::Result<(), String> {
+    let mut pdf = PDF::new(PageType::A4);
 
     let mut page_ids: Vec<Object> = Vec::new();
 
     for img in images.iter() {
-        let page_id = add_image_object(&mut doc, models::PageType::A4, img, pages_id);
-        // 添加图片到 pages 的 Kids 列表
-        page_ids.push(page_id.into());
+        match pdf.add_image(img) {
+            Ok(page_id) => page_ids.push(page_id.into()),
+            Err(e) => return Err(e.to_string()),
+        }
     }
 
     let pages = dictionary! {
@@ -161,16 +256,15 @@ pub fn embedd_images_to_new_pdf<P: AsRef<Path>>(output: P, images: Vec<models::I
         "Kids" => page_ids,
         "Count" => Object::Integer(images.len().try_into().unwrap()),
     };
+
     // 必需插入 pages
-    doc.objects.insert(pages_id, Object::Dictionary(pages));
+    pdf.insert_pages(pages);
 
     // 必需有目录对象，即使目录不显示
-    let catalog_id = doc.add_object(dictionary! {
-        "Type" => "Catalog",
-        "Pages" => pages_id,
-    });
-    doc.trailer.set("Root", catalog_id);
-    doc.compress();
+    pdf.create_catalog();
 
-    doc.save(output).unwrap();
+    match pdf.save(output) {
+        Ok(()) => Ok(()),
+        Err(e) => Err(e.to_string()),
+    }
 }

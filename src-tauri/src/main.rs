@@ -3,10 +3,18 @@
     windows_subsystem = "windows"
 )]
 
+mod logger;
 mod models;
 mod pdf;
 
-use std::path::PathBuf;
+#[macro_use]
+extern crate log;
+extern crate simplelog;
+
+use std::{fs::File, path::PathBuf};
+
+use crate::logger::{log_level, logger_config};
+use simplelog::{ColorChoice, CombinedLogger, TermLogger, TerminalMode, WriteLogger};
 
 use crate::pdf::embedd_images_to_new_pdf;
 
@@ -15,12 +23,31 @@ use crate::pdf::embedd_images_to_new_pdf;
 
 #[tauri::command]
 async fn merge_images_to_pdf(output: PathBuf, images: Vec<models::Image>) -> Result<(), String> {
-    embedd_images_to_new_pdf(output, images);
-    Ok(())
+    match embedd_images_to_new_pdf(output, images) {
+        Ok(()) => Ok(()),
+        Err(e) => Err(e),
+    }
 }
 
 #[tokio::main]
 async fn main() {
+    // trace 应该记录每一步代码的输出，用来追溯程序的运行情况。
+    // debug 和 trace 没有本质上的区别，如果用来区分，则 debug 可以用来记录一些不重要的变量的日志。
+    CombinedLogger::init(vec![
+        TermLogger::new(
+            log_level(),
+            logger_config(true),
+            TerminalMode::Mixed,
+            ColorChoice::Auto,
+        ),
+        WriteLogger::new(
+            log_level(),
+            logger_config(true),
+            File::create("pdf-old-driver.log").unwrap(),
+        ),
+    ])
+    .unwrap();
+
     tauri::Builder::default()
         // .setup(|app| {
         //     let window = app.get_window("main").unwrap();
