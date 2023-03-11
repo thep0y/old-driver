@@ -1,53 +1,20 @@
 import React, { useEffect } from 'react'
 import { InboxOutlined } from '@ant-design/icons'
-import { message } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import type { NavigateFunction } from 'react-router-dom'
-import { open } from '@tauri-apps/api/dialog'
-import { convertFileSrc } from '@tauri-apps/api/tauri'
-import { path } from '@tauri-apps/api'
 import { TauriEvent } from '@tauri-apps/api/event'
 import { appWindow } from '@tauri-apps/api/window'
 import '~/styles/selecter.scss'
-
-const convert = async (src: string[]): Promise<ImageItem[]> => {
-  const images: ImageItem[] = []
-
-  for (const v of src) {
-    const name = await path.basename(v)
-
-    images.push({
-      url: convertFileSrc(v),
-      path: v,
-      name
-    })
-  }
-
-  return images
-}
+import { convertToImageItems, filterImages, selectImages } from '~/lib'
 
 const select = async (navigate: NavigateFunction): Promise<void> => {
-  const selected = await open({
-    multiple: true,
-    filters: [
-      {
-        name: '图片或 PDF 文件',
-        extensions: ['png', 'jpg', 'jpeg', 'pdf']
-      }
-    ]
-  })
+  const selected = await selectImages()
 
-  if (selected === null) {
-    void message.warning('未选择任何文件')
-
+  if (selected == null) {
     return
   }
 
-  if (Array.isArray(selected)) {
-    navigate('/image-list', { state: { images: await convert(selected) } })
-  } else {
-    navigate('/image-list', { state: { images: [{ url: convertFileSrc(selected), name: await path.basename(selected) }] } })
-  }
+  navigate('/image-list', { state: { images: selected } })
 }
 
 const Selecter: React.FC = () => {
@@ -55,7 +22,9 @@ const Selecter: React.FC = () => {
 
   useEffect(() => {
     void appWindow.listen<string[]>(TauriEvent.WINDOW_FILE_DROP, async (e) => {
-      navigate('/image-list', { state: { images: await convert(e.payload) } })
+      const images = await filterImages(e.payload)
+
+      navigate('/image-list', { state: { images: await convertToImageItems(images) } })
     })
   })
 

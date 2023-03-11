@@ -47,10 +47,6 @@ const ImageList: React.FC = () => {
     setImages(images.filter((item) => item.path !== path))
   }
 
-  const clearImages = (): void => {
-    setImages([])
-  }
-
   const sensor = useSensor(PointerSensor, {
     activationConstraint: { distance: 10 }
   })
@@ -126,8 +122,8 @@ const ImageList: React.FC = () => {
 
       <React.Suspense>
         <FloatButtons
-          images={images.map(v => ({ path: v.path }))}
-          clearImages={clearImages}
+          images={images}
+          setImages={setImages}
           setLoading={setLoading}
         />
       </React.Suspense>

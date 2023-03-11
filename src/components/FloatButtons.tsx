@@ -1,19 +1,20 @@
 import React from 'react'
 import { FloatButton, message } from 'antd'
-import { MergeCellsOutlined, QuestionCircleOutlined, ReloadOutlined } from '@ant-design/icons'
+import { MergeCellsOutlined, QuestionCircleOutlined, ReloadOutlined, PlusOutlined } from '@ant-design/icons'
 import { invoke } from '@tauri-apps/api'
 import { save } from '@tauri-apps/api/dialog'
 import { open } from '@tauri-apps/api/shell'
 import { documentDir } from '@tauri-apps/api/path'
+import { selectImages } from '~/lib'
 
 interface Props {
-  images: Image[]
-  clearImages: () => void
+  images: ImageItem[]
+  setImages: (images: ImageItem[]) => void
   setLoading: (loading: boolean) => void
 }
 
 const FloatButtons: React.FC<Props> = (props) => {
-  const { images, clearImages, setLoading } = props
+  const { images, setImages, setLoading } = props
 
   return (
     <FloatButton.Group shape="circle" style={{ right: 24 }}>
@@ -24,9 +25,21 @@ const FloatButtons: React.FC<Props> = (props) => {
       />
 
       <FloatButton
+        icon={<PlusOutlined />}
+        tooltip={<div>添加新图片</div>}
+        onClick={ async () => {
+          const selected = await selectImages()
+
+          if (selected == null) return null
+
+          setImages(images.concat(selected))
+        }}
+      />
+
+      <FloatButton
         icon={<ReloadOutlined />}
         tooltip={<div>清空</div>}
-        onClick={() => { clearImages() }}
+        onClick={() => { setImages([]) }}
       />
 
       <FloatButton
@@ -62,7 +75,7 @@ const FloatButtons: React.FC<Props> = (props) => {
             void message.success('图片已合并：' + filePath)
 
             // 清空图片，回到首页
-            clearImages()
+            setImages([])
           } catch (e) {
             void message.error(e as string)
           } finally {

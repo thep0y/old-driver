@@ -1,8 +1,8 @@
 /*
  * author   thepoy
- * file     index.d.ts
- * created  2023-03-09 12:08:17
- * modified 2023-03-09 12:08:17
+ * file     image.d.ts
+ * created  2023-03-11 14:55:07
+ * modified 2023-03-11 14:55:07
  */
 
 declare interface ImageItem {
