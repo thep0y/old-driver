@@ -106,21 +106,26 @@ impl ImageObject {
     }
 }
 
-fn add_image_object(doc: &mut Document, image: &models::Image, pages_id: ObjectId) -> ObjectId {
+fn add_image_object(
+    doc: &mut Document,
+    page_type: models::PageType,
+    image: &models::Image,
+    pages_id: ObjectId,
+) -> ObjectId {
     // 需要有一个空 content 占位
-    let content = Content { operations: [] };
-    let content_id = doc.add_object(Stream::new(dictionary! {}, content.encode().unwrap()));
+    let content_id = doc.add_object(Stream::new(dictionary! {}, vec![]));
 
+    let page_size = page_type.size();
     // 插入图片 START
     let page_id = doc.add_object(dictionary! {
         "Type" => "Page",
         "Parent" => pages_id,
+        "MediaBox" => vec![0.0.into(),0.0.into(),page_size.0.into(), page_size.1.into()],
         "Contents" => content_id,
     });
 
     let (image_stream, size) = ImageObject::new(&image.path).unwrap();
 
-    // TODO: 原点和 size 还需要调整。
     let result = doc.insert_image(
         page_id,
         image_stream,
@@ -147,7 +152,7 @@ pub fn embedd_images_to_new_pdf<P: AsRef<Path>>(output: P, images: Vec<models::I
     let mut page_ids: Vec<Object> = Vec::new();
 
     for img in images.iter() {
-        let page_id = add_image_object(&mut doc, img, pages_id);
+        let page_id = add_image_object(&mut doc, models::PageType::A4, img, pages_id);
         // 添加图片到 pages 的 Kids 列表
         page_ids.push(page_id.into());
     }
