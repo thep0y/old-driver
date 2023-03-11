@@ -206,7 +206,6 @@ impl PDF {
 
         if scale_width <= 1. && scale_height <= 1. {
             if scale_width < scale_height {
-                let scaled = ImageSize(image_width * scale_width, image_height * scale_width);
                 return ImageSize(image_width * scale_width, image_height * scale_width);
             }
 
