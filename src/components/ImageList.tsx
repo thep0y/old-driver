@@ -1,7 +1,7 @@
-import React, { useState, lazy } from 'react'
-import { Card, List, FloatButton, message } from 'antd'
+import React, { useState, lazy, useEffect } from 'react'
+import { Card, List, FloatButton, Spin, message } from 'antd'
 import { MergeCellsOutlined } from '@ant-design/icons'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import type { DragEndEvent } from '@dnd-kit/core'
 import { DndContext, PointerSensor, useSensor } from '@dnd-kit/core'
 import {
@@ -9,6 +9,7 @@ import {
   SortableContext,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable'
+
 import '~/styles/imageList.scss'
 import { invoke } from '@tauri-apps/api'
 import { save } from '@tauri-apps/api/dialog'
@@ -32,8 +33,16 @@ interface State {
 const ImageList: React.FC = () => {
   const location = useLocation()
   const { state }: { state: State } = location
-
   const [images, setImages] = useState(state.images)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (images.length === 0) {
+      navigate('/')
+    }
+  }, [images])
+
+  const [loading, setLoading] = useState(false)
 
   const removeImage = (path: string): void => {
     setImages(images.filter((item) => item.path !== path))
@@ -55,7 +64,12 @@ const ImageList: React.FC = () => {
   }
 
   return (
-    <>
+    <Spin
+      spinning={loading}
+      tip="正在合并图片..."
+      wrapperClassName='merging'
+    >
+
       <div id="image-list">
         <DndContext
           sensors={[sensor]}
@@ -129,16 +143,20 @@ const ImageList: React.FC = () => {
             return
           }
 
+          setLoading(true)
+
           try {
             await invoke<null>('merge_images_to_pdf', { output: filePath, images: images.map(v => ({ path: v.path })) })
 
             await open(filePath)
           } catch (e) {
             void message.error(e as string)
+          } finally {
+            setLoading(false)
           }
         }}
       />
-    </>
+    </Spin>
   )
 }
 
