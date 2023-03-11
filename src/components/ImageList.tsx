@@ -1,5 +1,5 @@
 import React, { useState, lazy } from 'react'
-import { Card, List, FloatButton } from 'antd'
+import { Card, List, FloatButton, message } from 'antd'
 import { MergeCellsOutlined } from '@ant-design/icons'
 import { useLocation } from 'react-router-dom'
 import type { DragEndEvent } from '@dnd-kit/core'
@@ -10,6 +10,10 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable'
 import '~/styles/imageList.scss'
+import { invoke } from '@tauri-apps/api'
+import { save } from '@tauri-apps/api/dialog'
+import { open } from '@tauri-apps/api/shell'
+import { documentDir } from '@tauri-apps/api/path'
 
 const { Meta } = Card
 
@@ -44,12 +48,11 @@ const ImageList: React.FC = () => {
       setImages((prev) => {
         const activeIndex = prev.findIndex((i) => i.path === active.id)
         const overIndex = prev.findIndex((i) => i.path === over?.id)
+
         return arrayMove(prev, activeIndex, overIndex)
       })
     }
   }
-
-  console.log(images)
 
   return (
     <>
@@ -108,8 +111,31 @@ const ImageList: React.FC = () => {
         type="primary"
         tooltip={<div>合并</div>}
         icon={<MergeCellsOutlined />}
-        onClick={() => {
-          console.log('合并为 pdf', images)
+        onClick={ async () => {
+          const defaultPath = await documentDir() + '/合并.pdf'
+
+          const filePath = await save({
+            title: '保存',
+            filters: [{
+              name: 'PDF',
+              extensions: ['pdf']
+            }],
+            defaultPath
+          })
+
+          if (filePath == null) {
+            void message.warning('未选择要保存的路径')
+
+            return
+          }
+
+          try {
+            await invoke<null>('merge_images_to_pdf', { output: filePath, images: images.map(v => ({ path: v.path })) })
+
+            await open(filePath)
+          } catch (e) {
+            void message.error(e as string)
+          }
         }}
       />
     </>

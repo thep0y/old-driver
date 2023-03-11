@@ -3,23 +3,31 @@
     windows_subsystem = "windows"
 )]
 
+mod models;
+mod pdf;
+
+use std::path::PathBuf;
+
+use crate::pdf::embedd_images_to_new_pdf;
+
 // use tauri::Manager;
 // use window_shadows::set_shadow;
 
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+async fn merge_images_to_pdf(output: PathBuf, images: Vec<models::Image>) -> Result<(), String> {
+    embedd_images_to_new_pdf(output, images);
+    Ok(())
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     tauri::Builder::default()
         // .setup(|app| {
         //     let window = app.get_window("main").unwrap();
         //     set_shadow(&window, true).expect("Unsupported platform!");
         //     Ok(())
         // })
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![merge_images_to_pdf])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

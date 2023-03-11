@@ -32,7 +32,8 @@
       },
       "dialog": {
         "all": false,
-        "open": true
+        "open": true,
+        "save": true
       },
       "shell": {
         "open": "^[a-zA-Z]:\\\\|^[a-zA-Z]:/[A-Za-z.]|^/[A-Za-z]|^https?://"
