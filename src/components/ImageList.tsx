@@ -1,6 +1,5 @@
 import React, { useState, lazy, useEffect } from 'react'
-import { Card, List, FloatButton, Spin, message } from 'antd'
-import { MergeCellsOutlined } from '@ant-design/icons'
+import { Card, List, Spin } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
 import type { DragEndEvent } from '@dnd-kit/core'
 import { DndContext, PointerSensor, useSensor } from '@dnd-kit/core'
@@ -11,10 +10,6 @@ import {
 } from '@dnd-kit/sortable'
 
 import '~/styles/imageList.scss'
-import { invoke } from '@tauri-apps/api'
-import { save } from '@tauri-apps/api/dialog'
-import { open } from '@tauri-apps/api/shell'
-import { documentDir } from '@tauri-apps/api/path'
 
 const { Meta } = Card
 
@@ -24,6 +19,10 @@ const Actions = lazy(
 
 const DraggableImageListItem = lazy(
   async () => await import('~/components/DraggableImageListItem')
+)
+
+const FloatButtons = lazy(
+  async () => await import('~/components/FloatButtons')
 )
 
 interface State {
@@ -46,6 +45,10 @@ const ImageList: React.FC = () => {
 
   const removeImage = (path: string): void => {
     setImages(images.filter((item) => item.path !== path))
+  }
+
+  const clearImages = (): void => {
+    setImages([])
   }
 
   const sensor = useSensor(PointerSensor, {
@@ -121,41 +124,14 @@ const ImageList: React.FC = () => {
         </DndContext>
       </div>
 
-      <FloatButton
-        type="primary"
-        tooltip={<div>合并</div>}
-        icon={<MergeCellsOutlined />}
-        onClick={ async () => {
-          const defaultPath = await documentDir() + '/合并.pdf'
+      <React.Suspense>
+        <FloatButtons
+          images={images.map(v => ({ path: v.path }))}
+          clearImages={clearImages}
+          setLoading={setLoading}
+        />
+      </React.Suspense>
 
-          const filePath = await save({
-            title: '保存',
-            filters: [{
-              name: 'PDF',
-              extensions: ['pdf']
-            }],
-            defaultPath
-          })
-
-          if (filePath == null) {
-            void message.warning('未选择要保存的路径')
-
-            return
-          }
-
-          setLoading(true)
-
-          try {
-            await invoke<null>('merge_images_to_pdf', { output: filePath, images: images.map(v => ({ path: v.path })) })
-
-            await open(filePath)
-          } catch (e) {
-            void message.error(e as string)
-          } finally {
-            setLoading(false)
-          }
-        }}
-      />
     </Spin>
   )
 }

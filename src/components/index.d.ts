@@ -10,3 +10,12 @@ declare interface ImageItem {
   path: string
   name: string
 }
+
+declare interface Image {
+  path: string
+  // rotate: number
+  // scale: number
+  // width: number
+  // height: number
+  // position: [number, number]
+}
