@@ -5,6 +5,7 @@
     <String Id="TauriLanguage">2052</String>
     <String Id="TauriCodepage">936</String>
     <String Id="AppName">PDF 老司机</String>
+    <String Id="AppDesc">PDF 处理软件</String>
     <String Id="LaunchApp">运行 PDF 老司机</String>
     <String Id="DowngradeErrorMessage">
         当前已安装新版的 PDF 老司机，若需要降级，请先卸载当前安装的版本。

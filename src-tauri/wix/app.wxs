@@ -72,8 +72,8 @@
         <Directory Id="TARGETDIR" Name="SourceDir">
             <Directory Id="DesktopFolder" Name="Desktop">
                 <Component Id="ApplicationShortcutDesktop" Guid="*">
-                    <Shortcut Id="ApplicationDesktopShortcut" Name="!(loc.LaunchApp)"
-                        Description="!(loc.LaunchApp)" Target="[!Path]"
+                    <Shortcut Id="ApplicationDesktopShortcut" Name="!(loc.AppName)"
+                        Description="!(loc.AppDesc)" Target="[!Path]"
                         WorkingDirectory="INSTALLDIR" />
                     <RemoveFolder Id="DesktopFolder" On="uninstall" />
                     <RegistryValue Root="HKCU" Key="Software\thepoy\old-driver"
@@ -131,7 +131,7 @@
             <Component Id="ApplicationShortcut" Guid="*">
                 <Shortcut Id="ApplicationStartMenuShortcut"
                     Name="!(loc.AppName)"
-                    Description="!(loc.AppName)"
+                    Description="!(loc.AppDesc)"
                     Target="[!Path]"
                     Icon="ProductIcon"
                     WorkingDirectory="INSTALLDIR">

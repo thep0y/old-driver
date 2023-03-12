@@ -13,7 +13,6 @@ if (process.platform === "win32") {
   cmd += ".exe";
 }
 
-// 输出当前目录（不一定是代码所在的目录）下的文件和文件夹
 exec(cmd, (err, stdout, stderr) => {
   if (err) {
     console.error(err);
