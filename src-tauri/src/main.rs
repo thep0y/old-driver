@@ -32,7 +32,13 @@ async fn merge_images_to_pdf(output: PathBuf, images: Vec<models::Image>) -> Res
 #[tokio::main]
 async fn main() {
     let config_dir = dirs::config_dir().unwrap();
+
+    // 配置目录名符合不同系统的命名风格
+    #[cfg(target_os = "windows")]
+    let app_config_dir = config_dir.join("OldDriver");
+    #[cfg(not(target_os = "windows"))]
     let app_config_dir = config_dir.join("old-driver");
+
     if !app_config_dir.exists() {
         fs::create_dir(&app_config_dir).unwrap();
     }
