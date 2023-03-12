@@ -11,12 +11,12 @@ mod pdf;
 extern crate log;
 extern crate simplelog;
 
-use std::{fs::File, path::PathBuf};
+use std::fs;
+use std::{env, fs::File, path::PathBuf};
 
 use crate::logger::{log_level, logger_config};
-use simplelog::{ColorChoice, CombinedLogger, TermLogger, TerminalMode, WriteLogger};
-
 use crate::pdf::embedd_images_to_new_pdf;
+use simplelog::{ColorChoice, CombinedLogger, TermLogger, TerminalMode, WriteLogger};
 
 // use tauri::Manager;
 // use window_shadows::set_shadow;
@@ -31,6 +31,12 @@ async fn merge_images_to_pdf(output: PathBuf, images: Vec<models::Image>) -> Res
 
 #[tokio::main]
 async fn main() {
+    let config_dir = dirs::config_dir().unwrap();
+    let app_config_dir = config_dir.join("pdf-old-driver");
+    if !app_config_dir.exists() {
+        fs::create_dir(&app_config_dir).unwrap();
+    }
+
     // trace 应该记录每一步代码的输出，用来追溯程序的运行情况。
     // debug 和 trace 没有本质上的区别，如果用来区分，则 debug 可以用来记录一些不重要的变量的日志。
     CombinedLogger::init(vec![
@@ -43,7 +49,7 @@ async fn main() {
         WriteLogger::new(
             log_level(),
             logger_config(true),
-            File::create("pdf-old-driver.log").unwrap(),
+            File::create(app_config_dir.join("old-driver.log")).unwrap(),
         ),
     ])
     .unwrap();
