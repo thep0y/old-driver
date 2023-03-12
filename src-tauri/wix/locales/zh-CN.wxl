@@ -1,0 +1,17 @@
+<WixLocalization
+    Culture="zh-cn"
+    xmlns="http://schemas.microsoft.com/wix/2006/localization"
+>
+    <String Id="TauriLanguage">2052</String>
+    <String Id="TauriCodepage">936</String>
+    <String Id="AppName">PDF 老司机</String>
+    <String Id="LaunchApp">运行 PDF 老司机</String>
+    <String Id="DowngradeErrorMessage">
+        当前已安装新版的 PDF 老司机，若需要降级，请先卸载当前安装的版本。
+    </String>
+    <String Id="UninstallApp">卸载 PDF 老司机</String>
+    <String Id="PathEnvVarFeature">
+        将 PDF 老司机添加到环境变量，你可以在任何位置启动它。
+    </String>
+    <String Id="InstallAppFeature">安装 PDF 老司机。</String>
+</WixLocalization>
