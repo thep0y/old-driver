@@ -7,7 +7,8 @@ import {
   UndoOutlined,
   SettingOutlined
 } from '@ant-design/icons'
-import { open } from '@tauri-apps/api/shell'
+// import { open } from '@tauri-apps/api/shell'
+import { invoke } from '@tauri-apps/api'
 
 interface ActionsProps {
   show: boolean
@@ -33,7 +34,12 @@ const Actions: React.FC<ActionsProps> = (props) => {
             shape="circle"
             icon={<EyeOutlined />}
             onClick={async () => {
-              await open(path)
+              try {
+                // await open(`"" "${path}"`)
+                await invoke('open_file', { path })
+              } catch (e) {
+                console.error(e)
+              }
             }}
           />
         </Tooltip>

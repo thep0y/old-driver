@@ -29,8 +29,8 @@ const version = async (): Promise<void> => {
 }
 
 interface Props {
-  images: ImageItem[]
-  setImages: (images: ImageItem[]) => void
+  images: Thumbnail[]
+  setImages: (images: Thumbnail[]) => void
   setLoading: (loading: boolean) => void
 }
 

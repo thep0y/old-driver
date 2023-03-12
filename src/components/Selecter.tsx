@@ -1,11 +1,12 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
+import { Spin } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import type { NavigateFunction } from 'react-router-dom'
 import { TauriEvent } from '@tauri-apps/api/event'
 import { appWindow } from '@tauri-apps/api/window'
 import '~/styles/selecter.scss'
-import { convertToImageItems, filterImages, selectImages } from '~/lib'
+import { filterImages, generateThumbnails, selectImages } from '~/lib'
 
 const select = async (navigate: NavigateFunction): Promise<void> => {
   const selected = await selectImages()
@@ -20,11 +21,19 @@ const select = async (navigate: NavigateFunction): Promise<void> => {
 const Selecter: React.FC = () => {
   const navigate = useNavigate()
 
+  const [genertating, setGenertating] = useState(false)
+
   useEffect(() => {
     void appWindow.listen<string[]>(TauriEvent.WINDOW_FILE_DROP, async (e) => {
+      setGenertating(true)
+
       const images = await filterImages(e.payload)
 
-      navigate('/image-list', { state: { images: await convertToImageItems(images) } })
+      const thumbnails = await generateThumbnails(images)
+
+      setGenertating(false)
+
+      navigate('/image-list', { state: { images: thumbnails } })
     })
   })
 
@@ -36,21 +45,26 @@ const Selecter: React.FC = () => {
         await select(navigate)
       }}
     >
-      <div className="ant-upload ant-upload-drag">
-        <span tabIndex={0} className="ant-upload ant-upload-btn" role="button">
-          <div className="ant-upload-drag-container">
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined />
-            </p>
+      <Spin
+        spinning={genertating}
+        tip="正在生成缩略图..."
+      >
+        <div className="ant-upload ant-upload-drag">
+          <span tabIndex={0} className="ant-upload ant-upload-btn" role="button">
+            <div className="ant-upload-drag-container">
+              <p className="ant-upload-drag-icon">
+                <InboxOutlined />
+              </p>
 
-            <p className="ant-upload-text">选择图片或 PDF 文件</p>
+              <p className="ant-upload-text">选择图片或 PDF 文件</p>
 
-            <p className="ant-upload-hint">
-              单击打开文件管理器选择文件或将目标文件拖拽到此窗口
-            </p>
-          </div>
-        </span>
-      </div>
+              <p className="ant-upload-hint">
+                单击打开文件管理器选择文件或将目标文件拖拽到此窗口
+              </p>
+            </div>
+          </span>
+        </div>
+      </Spin>
     </span>
   )
 }

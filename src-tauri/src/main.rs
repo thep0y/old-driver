@@ -13,8 +13,14 @@ extern crate log;
 extern crate simplelog;
 
 use std::fs;
+use std::io::Error;
+use std::process::Command;
 use std::{env, fs::File, path::PathBuf};
 
+#[cfg(not(target_os = "windows"))]
+use tauri::api::shell;
+
+use crate::image::Thumbnail;
 use crate::logger::{log_level, logger_config};
 use crate::pdf::embedd_images_to_new_pdf;
 use simplelog::{ColorChoice, CombinedLogger, TermLogger, TerminalMode, WriteLogger};
@@ -28,6 +34,61 @@ async fn merge_images_to_pdf(output: PathBuf, images: Vec<models::Image>) -> Res
         Ok(()) => Ok(()),
         Err(e) => Err(e),
     }
+}
+
+#[tauri::command]
+async fn generate_thumbnails(images: Vec<PathBuf>) -> Vec<Thumbnail> {
+    debug!("创建缩略图 {:?}", images);
+    let mut thumbnails = Vec::<Thumbnail>::new();
+
+    for ip in images.iter() {
+        let t = Thumbnail::new(ip);
+        thumbnails.push(t);
+    }
+
+    thumbnails
+}
+
+#[cfg(target_os = "windows")]
+fn open_with_command(path: &str) -> Result<(), Error> {
+    let mut cmd = Command::new("cmd");
+    cmd.arg("/c").arg("start").arg("").arg(path);
+    cmd.output()?;
+
+    Ok(())
+}
+
+#[cfg(target_os = "windows")]
+#[tauri::command]
+async fn open_file(path: String) -> Result<(), String> {
+    debug!("打开 {}", path);
+
+    match open_with_command(&path) {
+        Ok(()) => {}
+        Err(e) => {
+            error!("打开文件时出错：{}", e);
+            return Err(e.to_string());
+        }
+    };
+
+    Ok(())
+}
+
+#[cfg(not(target_os = "windows"))]
+#[tauri::command]
+async fn open_file(handle: tauri::AppHandle, path: String) -> Result<(), String> {
+    debug!("打开 {}", path);
+
+    #[cfg(not(target_os = "windows"))]
+    match shell::open(&handle.app_handle().shell_scope(), path, None) {
+        Ok(()) => {}
+        Err(e) => {
+            error!("打开文件时出错：{}", e);
+            return Err(e.to_string());
+        }
+    };
+
+    Ok(())
 }
 
 #[tokio::main]
@@ -67,7 +128,11 @@ async fn main() {
         //     set_shadow(&window, true).expect("Unsupported platform!");
         //     Ok(())
         // })
-        .invoke_handler(tauri::generate_handler![merge_images_to_pdf])
+        .invoke_handler(tauri::generate_handler![
+            merge_images_to_pdf,
+            generate_thumbnails,
+            open_file
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

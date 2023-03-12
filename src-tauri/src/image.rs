@@ -1,6 +1,9 @@
+use base64::{engine::general_purpose, Engine as _};
+use image::ImageOutputFormat;
 use lazy_static::lazy_static;
+use serde::Serialize;
 use std::fs::{self, File};
-use std::io::Read;
+use std::io::{Cursor, Read};
 use std::path::PathBuf;
 
 use image::{imageops::thumbnail, DynamicImage};
@@ -11,7 +14,7 @@ const MAX_THUMBNAIL_WIDTH: u16 = 226;
 const MAX_THUMBNAIL_HEIGHT: u16 = 297;
 
 lazy_static! {
-    static ref TIMP_DIR: PathBuf = {
+    static ref TEMP_DIR: PathBuf = {
         let mut cache_dir = dirs::cache_dir().unwrap();
         if cfg!(target_os = "windows") {
             cache_dir = cache_dir.join("OldDriver");
@@ -108,9 +111,28 @@ pub fn scale(image_size: &ImageSize, max_size: &ImageSize) -> ImageSize {
     ImageSize::from((image_size.width, image_size.height))
 }
 
-struct Thumbnail;
+#[derive(Debug, Serialize)]
+pub struct Thumbnail {
+    pub src: PathBuf,
+    pub base64: String,
+    pub name: String,
+}
 
 impl Thumbnail {
+    pub fn new(image_path: &PathBuf) -> Thumbnail {
+        let b = Self::new_from_path(image_path);
+        Thumbnail {
+            src: image_path.into(),
+            base64: "data:image/png;base64, ".to_string() + &b,
+            name: image_path
+                .file_name()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .to_string(),
+        }
+    }
+
     fn conver_size(img: &DynamicImage) -> ImageSize {
         scale(
             &ImageSize {
@@ -124,20 +146,27 @@ impl Thumbnail {
         )
     }
 
-    fn new_from_path(image_path: &PathBuf) {
+    fn new_from_path(image_path: &PathBuf) -> String {
         let mut file = File::open(image_path).unwrap();
         let mut buffer = Vec::new();
         file.read_to_end(&mut buffer).unwrap();
         let img = image::load_from_memory(buffer.as_ref()).unwrap();
 
-        Self::new_from_image(&img);
+        Self::new_from_image(&img)
     }
 
-    fn new_from_image(img: &DynamicImage) {
+    fn new_from_image(img: &DynamicImage) -> String {
         let scaled_size = Self::conver_size(img);
         println!("缩略图尺寸 {:?}", scaled_size);
 
-        let buf = thumbnail(img, scaled_size.width, scaled_size.height);
-        buf.save("thumbnail.jpg").unwrap();
+        let image_buf = thumbnail(img, scaled_size.width, scaled_size.height);
+
+        let mut buffer: Vec<u8> = Vec::new();
+
+        image_buf
+            .write_to(&mut Cursor::new(&mut buffer), ImageOutputFormat::Png)
+            .unwrap();
+
+        general_purpose::STANDARD.encode(buffer)
     }
 }

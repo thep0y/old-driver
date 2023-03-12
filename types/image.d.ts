@@ -6,7 +6,7 @@
  */
 
 declare interface ImageItem {
-  url: string
+  base64: string
   path: string
   name: string
 }
@@ -18,4 +18,10 @@ declare interface Image {
   // width: number
   // height: number
   // position: [number, number]
+}
+
+declare interface Thumbnail {
+  src: string
+  base64: string
+  name: string
 }

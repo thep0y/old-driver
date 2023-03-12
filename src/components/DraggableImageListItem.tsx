@@ -8,12 +8,12 @@ interface DraggableImageListItemProps {
   any,
   string | React.JSXElementConstructor<any>
   >
-  item: ImageItem
+  src: string
 }
 
 const DraggableImageListItem: React.FC<DraggableImageListItemProps> = ({
   originNode,
-  item
+  src
 }: DraggableImageListItemProps) => {
   const {
     attributes,
@@ -23,7 +23,7 @@ const DraggableImageListItem: React.FC<DraggableImageListItemProps> = ({
     transition,
     isDragging
   } = useSortable({
-    id: item.path
+    id: src
   })
 
   const style: React.CSSProperties = {

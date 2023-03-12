@@ -26,7 +26,7 @@ const FloatButtons = lazy(
 )
 
 interface State {
-  images: ImageItem[]
+  images: Thumbnail[]
 }
 
 const ImageList: React.FC = () => {
@@ -44,7 +44,7 @@ const ImageList: React.FC = () => {
   const [loading, setLoading] = useState(false)
 
   const removeImage = (path: string): void => {
-    setImages(images.filter((item) => item.path !== path))
+    setImages(images.filter((item) => item.src !== path))
   }
 
   const sensor = useSensor(PointerSensor, {
@@ -54,13 +54,15 @@ const ImageList: React.FC = () => {
   const onDragEnd = ({ active, over }: DragEndEvent): void => {
     if (active.id !== over?.id) {
       setImages((prev) => {
-        const activeIndex = prev.findIndex((i) => i.path === active.id)
-        const overIndex = prev.findIndex((i) => i.path === over?.id)
+        const activeIndex = prev.findIndex((i) => i.src === active.id)
+        const overIndex = prev.findIndex((i) => i.src === over?.id)
 
         return arrayMove(prev, activeIndex, overIndex)
       })
     }
   }
+
+  console.log(images)
 
   return (
     <Spin
@@ -75,7 +77,7 @@ const ImageList: React.FC = () => {
           onDragEnd={onDragEnd}
         >
           <SortableContext
-            items={images.map((i) => i.path)}
+            items={images.map((i) => i.src)}
             strategy={verticalListSortingStrategy}
           >
             <List
@@ -96,12 +98,12 @@ const ImageList: React.FC = () => {
                         <Card
                           hoverable
                           style={{ width: 226, height: 319 }}
-                          cover={<img alt={item.name} src={item.url} />}
+                          cover={<img alt={item.name} src={item.base64} />}
                           extra={(
                             <React.Suspense>
                               <Actions
                                 show={true}
-                                path={item.path}
+                                path={item.src}
                                 removeImage={removeImage}
                               />
                             </React.Suspense>
@@ -110,7 +112,7 @@ const ImageList: React.FC = () => {
                           <Meta title={item.name} />
                         </Card>
                       )}
-                      item={item}
+                      src={item.src}
                     />
                   </React.Suspense>
                 </List.Item>
