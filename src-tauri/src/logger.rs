@@ -1,6 +1,11 @@
 use std::{collections::HashMap, env};
 
-use simplelog::*;
+use log::{Level, LevelFilter};
+use simplelog::{Color, Config, ConfigBuilder};
+use time::macros::format_description;
+
+#[cfg(target_os = "linux")]
+use time::macros::offset;
 
 pub fn logger_config(is_term: bool) -> Config {
     let mut config = &mut ConfigBuilder::new();
@@ -21,16 +26,20 @@ pub fn logger_config(is_term: bool) -> Config {
         ));
     }
 
+    // time::OffsetDateTime::now_local() 方法在 POSIX 上线程不安全：https://github.com/time-rs/time/issues/457
+    // 在 linux 上直接指定时区为 +8。
+    #[cfg(target_os = "linux")]
+    config.set_time_offset(offset!(+8));
+
+    #[cfg(not(target_os = "linux"))]
+    config.set_time_offset_to_local().unwrap();
+
     config
         .set_location_level(LevelFilter::Error)
-        .set_time_offset_to_local()
-        .unwrap()
         .set_thread_level(LevelFilter::Off)
         .set_target_level(LevelFilter::Off)
-        // .add_filter_ignore_str("tokio")
         .add_filter_ignore_str("tao")
         .add_filter_ignore_str("mio")
-        // .add_filter_ignore_str("sqlx")
         .build()
 }
 
