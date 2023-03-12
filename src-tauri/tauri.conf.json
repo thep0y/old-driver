@@ -2,7 +2,7 @@
   "build": {
     "beforeDevCommand": "pnpm dev:vite",
     "beforeBuildCommand": "pnpm build:vite",
-    "beforeBundleCommand": "if \"%OS%\" == \"Windows_NT\" (upx -9 src-tauri/target/release/old-driver.exe) else (upx -9 src-tauri/target/release/old-driver)",
+    "beforeBundleCommand": "node src-tauri/upx.js",
     "devPath": "http://localhost:1420",
     "distDir": "../dist",
     "withGlobalTauri": false
