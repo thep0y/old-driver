@@ -119,10 +119,12 @@ pub struct Thumbnail {
 }
 
 impl Thumbnail {
-    pub fn new(image_path: &PathBuf) -> Thumbnail {
-        let b = Self::new_from_path(image_path);
+    pub async fn new(image_path: PathBuf) -> Thumbnail {
+        trace!("创建缩略图：{:?}", image_path);
+
+        let b = Self::new_from_path(&image_path).await;
         Thumbnail {
-            src: image_path.into(),
+            src: image_path.clone(),
             base64: "data:image/png;base64, ".to_string() + &b,
             name: image_path
                 .file_name()
@@ -146,18 +148,18 @@ impl Thumbnail {
         )
     }
 
-    fn new_from_path(image_path: &PathBuf) -> String {
+    async fn new_from_path(image_path: &PathBuf) -> String {
         let mut file = File::open(image_path).unwrap();
         let mut buffer = Vec::new();
         file.read_to_end(&mut buffer).unwrap();
         let img = image::load_from_memory(buffer.as_ref()).unwrap();
 
-        Self::new_from_image(&img)
+        Self::new_from_image(&img).await
     }
 
-    fn new_from_image(img: &DynamicImage) -> String {
+    async fn new_from_image(img: &DynamicImage) -> String {
         let scaled_size = Self::conver_size(img);
-        println!("缩略图尺寸 {:?}", scaled_size);
+        trace!("缩略图尺寸 {:?}", scaled_size);
 
         let image_buf = thumbnail(img, scaled_size.width, scaled_size.height);
 

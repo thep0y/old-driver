@@ -39,14 +39,20 @@ async fn merge_images_to_pdf(output: PathBuf, images: Vec<models::Image>) -> Res
 #[tauri::command]
 async fn generate_thumbnails(images: Vec<PathBuf>) -> Vec<Thumbnail> {
     debug!("创建缩略图 {:?}", images);
-    let mut thumbnails = Vec::<Thumbnail>::new();
+    // let mut thumbnails = Vec::<Thumbnail>::new();
 
-    for ip in images.iter() {
-        let t = Thumbnail::new(ip);
-        thumbnails.push(t);
+    let mut tasks = Vec::with_capacity(images.len());
+
+    for ip in images {
+        tasks.push(tokio::spawn(Thumbnail::new(ip)));
     }
 
-    thumbnails
+    let mut outputs = Vec::with_capacity(tasks.len());
+    for task in tasks {
+        outputs.push(task.await.unwrap());
+    }
+
+    outputs
 }
 
 #[cfg(target_os = "windows")]
