@@ -1,8 +1,10 @@
 /*
- * author   thepoy
- * file     const.ts
- * created  2023-03-11 14:49:53
- * modified 2023-03-11 14:49:53
+ * Author:      thepoy
+ * Email:       thepoy@163.com
+ * File Name:   const.ts
+ * Created At:  2023-03-11 14:49:53
+ * Modified At: 2023-03-12 17:21:16
+ * Modified By: thepoy
  */
 
-export const IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'pdf', 'bmp']
+export const IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'bmp']
