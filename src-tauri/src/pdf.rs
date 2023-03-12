@@ -5,27 +5,77 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::PathBuf;
 
+use crate::image::{scale, ImageSize};
 use crate::models;
 
 #[derive(Debug)]
-struct ImageSize(f64, f64);
+struct Position {
+    x: u32,
+    y: u32,
+}
 
-impl From<ImageSize> for (f32, f32) {
-    fn from(value: ImageSize) -> Self {
-        (value.0 as f32, value.1 as f32)
+impl From<Position> for (u32, u32) {
+    fn from(value: Position) -> Self {
+        (value.x as u32, value.y as u32)
+    }
+}
+
+impl From<(u32, u32)> for Position {
+    fn from(value: (u32, u32)) -> Self {
+        Position {
+            x: value.0,
+            y: value.1,
+        }
+    }
+}
+
+impl From<(f32, f32)> for Position {
+    fn from(value: (f32, f32)) -> Self {
+        Position {
+            x: value.0.round() as u32,
+            y: value.1.round() as u32,
+        }
+    }
+}
+
+impl Into<(f32, f32)> for Position {
+    fn into(self) -> (f32, f32) {
+        (self.x as f32, self.y as f32)
     }
 }
 
 #[derive(Debug)]
-struct Position(f64, f64);
+pub struct PageSize {
+    pub width: u32,
+    pub height: u32,
+}
 
-impl From<Position> for (f32, f32) {
-    fn from(value: Position) -> Self {
-        (value.0 as f32, value.1 as f32)
+impl From<(u32, u32)> for PageSize {
+    fn from(value: (u32, u32)) -> Self {
+        PageSize {
+            width: value.0,
+            height: value.1,
+        }
     }
 }
 
-pub struct PageSize(pub f64, pub f64);
+impl From<(f32, f32)> for PageSize {
+    fn from(value: (f32, f32)) -> Self {
+        PageSize {
+            width: value.0.round() as u32,
+            height: value.1.round() as u32,
+        }
+    }
+}
+
+impl From<&PageSize> for ImageSize {
+    fn from(value: &PageSize) -> Self {
+        ImageSize {
+            width: value.width,
+            height: value.height,
+        }
+    }
+}
 
 #[derive(Debug)]
 pub enum PageType {
@@ -49,7 +99,7 @@ pub enum PageType {
 pub fn page_size(page_type: &PageType) -> PageSize {
     match *page_type {
         // PageType::Letter => PageSize(612.0, 792.0),
-        PageType::A4 => PageSize(595.2756, 841.8898),
+        PageType::A4 => PageSize::from((595.2756, 841.8898)),
     }
 }
 
@@ -104,7 +154,7 @@ impl ImageObject {
                 let mut img_object = Stream::new(dict, img.into_bytes());
                 // Ignore any compression error.
                 let _ = img_object.compress();
-                return Ok((img_object, ImageSize(width as f64, height as f64)));
+                return Ok((img_object, ImageSize::from((width, height))));
             }
         };
 
@@ -113,10 +163,7 @@ impl ImageObject {
         match image_fmt {
             ImageFormat::Jpeg => {
                 dict.set("Filter", Object::Name(b"DCTDecode".to_vec()));
-                return Ok((
-                    Stream::new(dict, buffer),
-                    ImageSize(width as f64, height as f64),
-                ));
+                return Ok((Stream::new(dict, buffer), ImageSize::from((width, height))));
             }
             ImageFormat::Png => {
                 // NOTE: png 图片保存到 pdf 中时不保留其 alpha 通道。
@@ -141,7 +188,7 @@ impl ImageObject {
                 let mut img_object = Stream::new(dict, output.to_vec());
                 // Ignore any compression error.
                 let _ = img_object.compress();
-                return Ok((img_object, ImageSize(width as f64, height as f64)));
+                return Ok((img_object, ImageSize::from((width, height))));
 
                 // NOTE: 如果上面的逻辑仍有问题，后续改用转换为 jpg 后递归完成。
                 // output
@@ -153,7 +200,7 @@ impl ImageObject {
                 let mut img_object = Stream::new(dict, img.into_bytes());
                 // Ignore any compression error.
                 let _ = img_object.compress();
-                return Ok((img_object, ImageSize(width as f64, height as f64)));
+                return Ok((img_object, ImageSize::from((width, height))));
             }
         }
     }
@@ -189,7 +236,7 @@ impl PDF {
         let page_id = self.doc.add_object(dictionary! {
             "Type" => "Page",
             "Parent" => self.pages_id,
-            "MediaBox" => vec![0.0.into(), 0.0.into(), self.page_size.0.into(), self.page_size.1.into()],
+            "MediaBox" => vec![0.0.into(), 0.0.into(), self.page_size.width.into(), self.page_size.height.into()],
             "Contents" => content_id,
         });
 
@@ -199,36 +246,7 @@ impl PDF {
     }
 
     fn scale(&self, image_size: &ImageSize) -> ImageSize {
-        let (image_width, image_height) = (image_size.0 as f64, image_size.1 as f64);
-        let (page_width, page_height) = (self.page_size.0, self.page_size.1);
-
-        let (scale_width, scale_height) = (image_width / page_width, image_height / page_height);
-
-        if scale_width <= 1. && scale_height <= 1. {
-            if scale_width < scale_height {
-                return ImageSize(image_width * scale_width, image_height * scale_width);
-            }
-
-            return ImageSize(image_width * scale_height, image_height * scale_height);
-        }
-
-        if scale_width <= 1. && scale_height > 1. {
-            return ImageSize(image_width / scale_height, image_height / scale_height);
-        }
-
-        if scale_width > 1. && scale_height <= 1. {
-            return ImageSize(image_width / scale_width, image_height / scale_width);
-        }
-
-        if scale_width > 1. && scale_height > 1. {
-            if scale_width < scale_height {
-                return ImageSize(image_width / scale_height, image_height / scale_height);
-            }
-
-            return ImageSize(image_width / scale_width, image_height / scale_width);
-        }
-
-        ImageSize(image_width, image_height)
+        scale(image_size, &ImageSize::from(&self.page_size))
     }
 
     fn add_image(&mut self, image: &models::Image) -> Result<ObjectId> {
@@ -239,10 +257,10 @@ impl PDF {
         let scaled = self.scale(&image_size);
         debug!("图片缩放尺寸 {:?}", scaled);
 
-        let position = Position(
-            (self.page_size.0 - scaled.0) / 2.0,
-            (self.page_size.1 - scaled.1) / 2.0,
-        );
+        let position = Position::from((
+            (self.page_size.width as f32 - scaled.width as f32) / 2.0,
+            (self.page_size.width as f32 - scaled.width as f32) / 2.0,
+        ));
 
         let result = self
             .doc

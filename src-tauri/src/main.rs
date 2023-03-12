@@ -3,6 +3,7 @@
     windows_subsystem = "windows"
 )]
 
+mod image;
 mod logger;
 mod models;
 mod pdf;
