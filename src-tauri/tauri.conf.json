@@ -78,7 +78,7 @@
       }
     },
     "security": {
-      "csp": "img-src 'self' asset: https://asset.localhost"
+      "csp": "img-src 'self' data:;"
     },
     "updater": {
       "active": false
