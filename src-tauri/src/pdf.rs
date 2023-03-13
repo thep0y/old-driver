@@ -255,12 +255,13 @@ impl PDF {
         let (image_stream, image_size) = ImageObject::new(image.path.clone()).await?;
 
         let scaled = self.scale(&image_size);
-        debug!("图片缩放尺寸 {:?}", scaled);
+        debug!("图片缩放尺寸 {:?} -> {:?}", image_size, scaled);
 
         let position = Position::from((
             (self.page_size.width as f32 - scaled.width as f32) / 2.0,
-            (self.page_size.width as f32 - scaled.width as f32) / 2.0,
+            (self.page_size.height as f32 - scaled.height as f32) / 2.0,
         ));
+        debug!("图片在 pdf 中的坐标 {:?}", position);
 
         self.doc
             .insert_image(page_id, image_stream, position.into(), scaled.into())
@@ -352,12 +353,13 @@ pub async fn embedd_images_to_new_pdf(
             .map_err(|e| e.to_string())?;
 
         let scaled = pdf.scale(&image_size);
-        debug!("图片缩放尺寸 {:?}", scaled);
+        debug!("图片缩放尺寸 {:?} -> {:?}", image_size, scaled);
 
         let position = Position::from((
-            (pdf.page_size.width as f32 - image_size.width as f32) / 2.0,
-            (pdf.page_size.width as f32 - image_size.width as f32) / 2.0,
+            (pdf.page_size.width as f32 - scaled.width as f32) / 2.0,
+            (pdf.page_size.height as f32 - scaled.height as f32) / 2.0,
         ));
+        debug!("图片在 pdf 中的坐标 {:?}", position);
 
         pdf.insert_image(page_id, stream, position, scaled);
 
