@@ -1,90 +1,45 @@
 /*
  * author   thepoy
  * file     vite.config.ts
- * created  2023-02-09 12:18:53
- * modified 2023-02-09 12:24:38
+ * created  2023-03-08 09:00:21
+ * modified 2023-03-08 10:50:00
  */
 
 import path from 'path'
+
 import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-
-import Components from 'unplugin-vue-components/vite'
-import Icons from 'unplugin-icons/vite'
-import IconsResolver from 'unplugin-icons/resolver'
-import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
-import ElementPlus from 'unplugin-element-plus/vite'
-
-import Unocss from 'unocss/vite'
-import {
-  presetAttributify,
-  presetIcons,
-  presetUno,
-  transformerDirectives,
-  transformerVariantGroup
-} from 'unocss'
+import react from '@vitejs/plugin-react'
 
 // eslint-disable-next-line no-undef
 const pathSrc = path.resolve(__dirname, 'src')
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  server: {
-    port: 1420
-  },
+  plugins: [react()],
+
   resolve: {
     alias: {
       '~/': `${pathSrc}/`
     }
   },
-  css: {
-    preprocessorOptions: {
-      scss: {
-        additionalData: '@use "~/styles/element/index.scss" as *;'
-      }
-    }
+
+  // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
+  // prevent vite from obscuring rust errors
+  clearScreen: false,
+  // tauri expects a fixed port, fail if that port is not available
+  server: {
+    port: 1420,
+    strictPort: true
   },
-  plugins: [
-    vue(),
-    ElementPlus({}),
-    Components({
-      // allow auto load markdown components under `./src/components/`
-      extensions: ['vue', 'md'],
-      // allow auto import and register components used in markdown
-      include: [
-        /\.vue$/, /\.vue\?vue/, /\.md$/
-      ],
-      resolvers: [
-        // 自动注册图标组件
-        IconsResolver({
-          enabledCollections: ['ep']
-        }),
-        ElementPlusResolver({
-          importStyle: 'sass'
-        })
-      ],
-      dts: 'src/components.d.ts'
-    }),
-
-    Icons({
-      autoInstall: true
-    }),
-
-    // https://github.com/antfu/unocss
-    // see unocss.config.ts for config
-    Unocss({
-      presets: [
-        presetUno(),
-        presetAttributify(),
-        presetIcons({
-          scale: 1.2,
-          warn: true
-        })
-      ],
-      transformers: [
-        transformerDirectives(),
-        transformerVariantGroup()
-      ]
-    })
-  ]
+  // to make use of `TAURI_DEBUG` and other env variables
+  // https://tauri.studio/v1/api/config#buildconfig.beforedevcommand
+  envPrefix: ['VITE_', 'TAURI_'],
+  build: {
+    // Tauri supports es2021
+    target: process.env.TAURI_PLATFORM === 'windows' ? 'chrome105' : 'safari13',
+    // don't minify for debug builds
+    minify: (process.env.TAURI_DEBUG == null) ? 'esbuild' : false,
+    // produce sourcemaps for debug builds
+    sourcemap: !(process.env.TAURI_DEBUG == null)
+  }
 })

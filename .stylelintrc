@@ -1,5 +1,6 @@
 {
   "plugins": ["stylelint-scss"],
+  "ignoreFiles": ["dist/**/*.css"],
   "rules": {
     "at-rule-no-unknown": null,
     "at-rule-empty-line-before": [
@@ -8,7 +9,12 @@
         "ignoreAtRules": ["else"]
       }
     ],
-    "rule-empty-line-before": ["always"],
+    "rule-empty-line-before": [
+      "always",
+      {
+        "ignore": ["after-comment", "first-nested"]
+      }
+    ],
     "scss/at-rule-no-unknown": true,
     "scss/dollar-variable-pattern": "^foo",
     "scss/selector-no-redundant-nesting-selector": true,
@@ -17,6 +23,5 @@
     "scss/at-else-empty-line-before": "never",
     "scss/at-if-closing-brace-newline-after": "always-last-in-chain",
     "scss/at-if-closing-brace-space-after": "always-intermediate"
-  },
-  "extends": ["stylelint-config-standard-scss", "stylelint-config-html/vue"]
+  }
 }

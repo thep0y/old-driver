@@ -2,19 +2,42 @@
   "build": {
     "beforeDevCommand": "pnpm dev:vite",
     "beforeBuildCommand": "pnpm build:vite",
+    "beforeBundleCommand": "node src-tauri/upx.js",
     "devPath": "http://localhost:1420",
     "distDir": "../dist",
     "withGlobalTauri": false
   },
   "package": {
     "productName": "old-driver",
-    "version": "0.0.0"
+    "version": "../package.json"
   },
   "tauri": {
     "allowlist": {
       "all": false,
+      "window": {
+        "all": false,
+        "close": true,
+        "hide": true,
+        "show": true,
+        "maximize": true,
+        "minimize": true,
+        "unmaximize": true,
+        "unminimize": true,
+        "startDragging": true
+      },
+      "os": {
+        "all": true
+      },
+      "path": {
+        "all": true
+      },
       "protocol": {
         "asset": true
+      },
+      "dialog": {
+        "all": false,
+        "open": true,
+        "save": true
       },
       "shell": {
         "open": "^[a-zA-Z]:\\\\|^[a-zA-Z]:/[A-Za-z.]|^/[A-Za-z]|^https?://"
@@ -48,13 +71,18 @@
       "shortDescription": "",
       "targets": "all",
       "windows": {
+        "allowDowngrades": false,
         "certificateThumbprint": null,
         "digestAlgorithm": "sha256",
-        "timestampUrl": ""
+        "timestampUrl": "",
+        "wix": {
+          "language": { "zh-CN": { "localePath": "./wix/locales/zh-CN.wxl" } },
+          "template": "./wix/app.wxs"
+        }
       }
     },
     "security": {
-      "csp": "default-src 'self'; img-src 'self' asset: https://asset.localhost"
+      "csp": "img-src 'self' data:;"
     },
     "updater": {
       "active": false
@@ -62,10 +90,14 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
+        "height": 676,
         "resizable": true,
-        "title": "PDF 老司机",
-        "width": 800
+        "hiddenTitle": true,
+        "minWidth": 500,
+        "minHeight": 676,
+        "maxWidth": 1600,
+        "maxHeight": 1010,
+        "title": "PDF 老司机"
       }
     ]
   }

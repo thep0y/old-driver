@@ -1,0 +1,82 @@
+/*
+ * author   thepoy
+ * file     Selecter.scss
+ * created  2023-03-08 12:56:21
+ * modified 2023-03-08 13:41:52
+ */
+
+.selecting.ant-spin-nested-loading {
+  height: 100%;
+
+  .ant-spin-container {
+    height: 100%;
+  }
+}
+
+#selecter.ant-upload-wrapper {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  color: rgba(0, 0, 0, 0.88);
+  font-size: 14px;
+  line-height: 1.5714285714285714;
+  list-style: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  .ant-upload-drag:not(.ant-upload-disabled):hover {
+    border-color: #4096ff;
+  }
+
+  .ant-upload-drag {
+    box-sizing: border-box;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.02);
+    border: 1px dashed #d9d9d9;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.3s;
+    outline: 0;
+
+    .ant-upload-btn {
+      display: table;
+      width: 100%;
+      height: 100%;
+      outline: none;
+      padding: 16px 0;
+      box-sizing: border-box;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .ant-upload-drag-container {
+      display: table-cell;
+      vertical-align: middle;
+      box-sizing: border-box;
+    }
+
+    p.ant-upload-drag-icon {
+      margin-bottom: 16px;
+
+      .anticon {
+        color: #1677ff;
+        font-size: 48px;
+      }
+    }
+
+    p.ant-upload-text {
+      margin: 0 0 4px;
+      color: rgba(0, 0, 0, 0.88);
+      font-size: 16px;
+    }
+
+    p.ant-upload-hint {
+      color: rgba(0, 0, 0, 0.45);
+      font-size: 14px;
+    }
+  }
+}

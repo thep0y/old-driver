@@ -1,17 +1,30 @@
 /*
  * author   thepoy
- * file     index.scss
- * created  2023-02-10 09:34:06
- * modified 2023-02-24 10:13:13
+ * file     styles.scss
+ * created  2023-03-08 12:51:41
+ * modified 2023-03-08 13:06:17
  */
 
-// import dark theme
+:root {
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
 
-@use "element-plus/theme-chalk/src/dark/css-vars.scss" as *;
+  color: #0f0f0f;
+  background-color: #f6f6f6;
 
-// :root {
-//   --ep-color-primary: red;
-// }
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
 
 html,
 body {
@@ -19,20 +32,12 @@ body {
 }
 
 body {
-  font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB",
-    "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  margin: 0;
+  box-sizing: border-box;
+  /* padding: 35px 5px 5px 5px; */
+  padding: 5px;
+  overflow-x: hidden;
 }
 
-a {
-  color: var(--ep-color-primary);
-}
-
-code {
-  border-radius: 2px;
-  padding: 2px 4px;
-  background-color: var(--ep-color-primary-light-9);
-  color: var(--ep-color-primary);
+#root {
+  height: 100%;
 }

@@ -1,37 +1,34 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "target": "esnext",
+    "target": "ESNext",
     "useDefineForClassFields": true,
-    "module": "esnext",
-    "moduleResolution": "Node",
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": false,
+    "allowSyntheticDefaultImports": true,
     "strict": true,
-    "jsx": "preserve",
-    "sourceMap": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "Node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "esModuleInterop": true,
-    "types": [
-      "vite/client"
-    ],
-    "lib": [
-      "esnext",
-      "dom"
-    ],
+    "noEmit": true,
+    "jsx": "react-jsx",
     "paths": {
       "~/*": [
-        "src/*"
+        "./src/*"
       ]
-    },
-    "skipLibCheck": true
+    }
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.d.ts",
-    "src/**/*.tsx",
-    "src/**/*.vue",
-    "types/**/*.d.ts",
-    "types/**/*.ts"
+    "src",
+    "types/*.d.ts"
   ],
   "references": [
     {
