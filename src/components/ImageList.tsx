@@ -3,6 +3,8 @@ import { Card, List, message, Spin } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
 import type { DragEndEvent } from '@dnd-kit/core'
 import { DndContext, PointerSensor, useSensor } from '@dnd-kit/core'
+import { appWindow } from '@tauri-apps/api/window'
+import { TauriEvent } from '@tauri-apps/api/event'
 import {
   arrayMove,
   SortableContext,
@@ -10,6 +12,7 @@ import {
 } from '@dnd-kit/sortable'
 
 import '~/styles/imageList.scss'
+import { generateThumbnails } from '~/lib'
 
 const { Meta } = Card
 
@@ -35,6 +38,9 @@ const ImageList: React.FC = () => {
   const [images, setImages] = useState(state.images)
   const navigate = useNavigate()
 
+  const [loading, setLoading] = useState(false)
+  const [genertating, setGenertating] = useState(false)
+
   useEffect(() => {
     if (images.length === 0) {
       navigate('/')
@@ -45,7 +51,17 @@ const ImageList: React.FC = () => {
     void message.info('已生成缩略图，如果图片顺序不正确，你可通过拖动图片以调整顺序。')
   }, [])
 
-  const [loading, setLoading] = useState(false)
+  useEffect(() => {
+    void appWindow.listen<string[]>(TauriEvent.WINDOW_FILE_DROP, async (e) => {
+      setGenertating(true)
+
+      const thumbnails = await generateThumbnails(e.payload)
+
+      setGenertating(false)
+
+      setImages(images.concat(thumbnails))
+    })
+  })
 
   const removeImage = (path: string): void => {
     setImages(images.filter((item) => item.src !== path))
@@ -68,8 +84,8 @@ const ImageList: React.FC = () => {
 
   return (
     <Spin
-      spinning={loading}
-      tip="正在合并图片..."
+      spinning={loading || genertating}
+      tip={loading ? '正在合并图片...' : '正在为新添加的图片生成缩略图...'}
       wrapperClassName='merging'
     >
 

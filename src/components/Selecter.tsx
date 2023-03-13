@@ -6,7 +6,7 @@ import type { NavigateFunction } from 'react-router-dom'
 import { TauriEvent } from '@tauri-apps/api/event'
 import { appWindow } from '@tauri-apps/api/window'
 import '~/styles/selecter.scss'
-import { filterImages, generateThumbnails, selectImages } from '~/lib'
+import { generateThumbnails, selectImages } from '~/lib'
 
 const select = async (navigate: NavigateFunction): Promise<void> => {
   const selected = await selectImages()
@@ -27,14 +27,7 @@ const Selecter: React.FC = () => {
     void appWindow.listen<string[]>(TauriEvent.WINDOW_FILE_DROP, async (e) => {
       setGenertating(true)
 
-      const images = await filterImages(e.payload)
-
-      // 当你在应用程序中使用拖放文件时，通常无法保证文件的顺序。
-      // 这是因为不同的操作系统和文件管理器会以不同的顺序返回拖放的文件列表。
-      // 这里选择使用 js 将文件名从小到大排列。
-      images.sort((a, b) => a.localeCompare(b))
-
-      const thumbnails = await generateThumbnails(images)
+      const thumbnails = await generateThumbnails(e.payload)
 
       setGenertating(false)
 
