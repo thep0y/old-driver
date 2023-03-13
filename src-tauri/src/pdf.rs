@@ -1,4 +1,4 @@
-use image::{ColorType, GenericImageView, ImageFormat, Pixel, RgbImage};
+use image::{ColorType, DynamicImage, GenericImageView, ImageFormat, Pixel, RgbImage};
 use lopdf::{dictionary, ObjectId};
 use lopdf::{Dictionary, Document, Object, Result, Stream};
 use std::fs::File;
@@ -116,6 +116,70 @@ impl ImageObject {
         Self::image_from(buffer).await
     }
 
+    fn color_space(color_type: ColorType) -> Vec<u8> {
+        match color_type {
+            ColorType::L8 => b"DeviceGray".to_vec(),
+            ColorType::La8 => b"DeviceGray".to_vec(),
+            ColorType::Rgb8 => b"DeviceRGB".to_vec(),
+            ColorType::Rgb16 => b"DeviceRGB".to_vec(),
+            ColorType::La16 => b"DeviceN".to_vec(),
+            ColorType::Rgba8 => b"DeviceRGB".to_vec(),
+            ColorType::Rgba16 => b"DeviceN".to_vec(),
+            _ => b"Indexed".to_vec(),
+        }
+    }
+
+    fn set_image_dict(width: u32, height: u32, color_space: Vec<u8>, bits: u16) -> Dictionary {
+        let mut dict = Dictionary::new();
+        dict.set("Type", Object::Name(b"XObject".to_vec()));
+        dict.set("Subtype", Object::Name(b"Image".to_vec()));
+        dict.set("Width", width);
+        dict.set("Height", height);
+        dict.set("ColorSpace", Object::Name(color_space));
+        dict.set("BitsPerComponent", bits);
+
+        dict
+    }
+
+    async fn process_png(
+        img: DynamicImage,
+        bits: u16,
+        mut dict: Dictionary,
+        width: u32,
+        height: u32,
+    ) -> (Stream, ImageSize) {
+        // NOTE: png 图片保存到 pdf 中时不保留其 alpha 通道。
+
+        // png 是 rgba 通道时，位深可能是 10 位，pdf 只能使用 8 位或 16 位。
+        // 从图片中提取出位深不是 8 或 16 时将其设置为 8。
+        if bits != 8 && bits != 16 {
+            dict.set("BitsPerComponent", 8);
+        }
+
+        let (w, h) = img.dimensions();
+        let mut output = RgbImage::new(w, h);
+        for (x, y, pixel) in img.pixels() {
+            output.put_pixel(
+                x,
+                y,
+                // pixel.map will iterate over the r, g, b, a values of the pixel
+                pixel.to_rgb(),
+            );
+        }
+
+        let mut img_object = Stream::new(dict, output.to_vec());
+        // Ignore any compression error.
+        let _ = img_object.compress();
+
+        (img_object, ImageSize::from((width, height)))
+
+        // NOTE: 如果上面的逻辑仍有问题，后续改用转换为 jpg 后递归完成。
+        // output
+        //     .save_with_format("output.jpg", ImageFormat::Jpeg)
+        //     .unwrap();
+        // return Self::new("output.jpg");
+    }
+
     async fn image_from(buffer: Vec<u8>) -> Result<(Stream, ImageSize)> {
         let img = image::load_from_memory(buffer.as_ref())?;
 
@@ -129,73 +193,32 @@ impl ImageObject {
         let bits = img.color().bits_per_pixel() / 3;
         debug!("图片色深为 {}", bits);
 
-        let color_space = match img.color() {
-            ColorType::L8 => b"DeviceGray".to_vec(),
-            ColorType::La8 => b"DeviceGray".to_vec(),
-            ColorType::Rgb8 => b"DeviceRGB".to_vec(),
-            ColorType::Rgb16 => b"DeviceRGB".to_vec(),
-            ColorType::La16 => b"DeviceN".to_vec(),
-            ColorType::Rgba8 => b"DeviceRGB".to_vec(),
-            ColorType::Rgba16 => b"DeviceN".to_vec(),
-            _ => b"Indexed".to_vec(),
-        };
+        let color_type = img.color();
+        debug!("图片色彩类型为 {:?}", color_type);
 
-        let mut dict = Dictionary::new();
-        dict.set("Type", Object::Name(b"XObject".to_vec()));
-        dict.set("Subtype", Object::Name(b"Image".to_vec()));
-        dict.set("Width", width);
-        dict.set("Height", height);
-        dict.set("ColorSpace", Object::Name(color_space));
-        dict.set("BitsPerComponent", bits);
+        let color_space = Self::color_space(color_type);
+
+        let mut dict = Self::set_image_dict(width, height, color_space, bits);
 
         let image_fmt = match image::guess_format(buffer.as_ref()) {
             Ok(format) => format,
-            Err(_) => {
+            Err(err) => {
+                warn!("获取图片格式失败，尝试直接返回图片对象：{}", err);
+
                 let mut img_object = Stream::new(dict, img.into_bytes());
                 // Ignore any compression error.
                 let _ = img_object.compress();
                 return Ok((img_object, ImageSize::from((width, height))));
             }
         };
-
-        debug!("图片类型为 {:?}", image_fmt);
+        debug!("图片格式为 {:?}", image_fmt);
 
         match image_fmt {
             ImageFormat::Jpeg => {
                 dict.set("Filter", Object::Name(b"DCTDecode".to_vec()));
                 return Ok((Stream::new(dict, buffer), ImageSize::from((width, height))));
             }
-            ImageFormat::Png => {
-                // NOTE: png 图片保存到 pdf 中时不保留其 alpha 通道。
-
-                // png 是 rgba 通道时，位深可能是 10 位，pdf 只能使用 8 位或 16 位。
-                // 从图片中提取出位深不是 8 或 16 时将其设置为 8。
-                if bits != 8 && bits != 16 {
-                    dict.set("BitsPerComponent", 8);
-                }
-
-                let (w, h) = img.dimensions();
-                let mut output = RgbImage::new(w, h);
-                for (x, y, pixel) in img.pixels() {
-                    output.put_pixel(
-                        x,
-                        y,
-                        // pixel.map will iterate over the r, g, b, a values of the pixel
-                        pixel.to_rgb(),
-                    );
-                }
-
-                let mut img_object = Stream::new(dict, output.to_vec());
-                // Ignore any compression error.
-                let _ = img_object.compress();
-                return Ok((img_object, ImageSize::from((width, height))));
-
-                // NOTE: 如果上面的逻辑仍有问题，后续改用转换为 jpg 后递归完成。
-                // output
-                //     .save_with_format("output.jpg", ImageFormat::Jpeg)
-                //     .unwrap();
-                // return Self::new("output.jpg");
-            }
+            ImageFormat::Png => Ok(Self::process_png(img, bits, dict, width, height).await),
             _ => {
                 let mut img_object = Stream::new(dict, img.into_bytes());
                 // Ignore any compression error.
@@ -247,33 +270,6 @@ impl PDF {
 
     fn scale(&self, image_size: &ImageSize) -> ImageSize {
         scale(image_size, &ImageSize::from(&self.page_size))
-    }
-
-    async fn add_image(&mut self, image: models::Image) -> Result<ObjectId> {
-        let page_id = self.add_blank_page();
-
-        let (image_stream, image_size) = ImageObject::new(image.path.clone()).await?;
-
-        let scaled = self.scale(&image_size);
-        debug!("图片缩放尺寸 {:?} -> {:?}", image_size, scaled);
-
-        let position = Position::from((
-            (self.page_size.width as f32 - scaled.width as f32) / 2.0,
-            (self.page_size.height as f32 - scaled.height as f32) / 2.0,
-        ));
-        debug!("图片在 pdf 中的坐标 {:?}", position);
-
-        self.doc
-            .insert_image(page_id, image_stream, position.into(), scaled.into())
-            .map_err(|err| {
-                error!("添加图片时出错: {}", err);
-
-                return err.to_string();
-            });
-
-        debug!("添加一图片 {:?}", image.path);
-
-        Ok(page_id)
     }
 
     fn insert_image(
@@ -361,7 +357,8 @@ pub async fn embedd_images_to_new_pdf(
         ));
         debug!("图片在 pdf 中的坐标 {:?}", position);
 
-        pdf.insert_image(page_id, stream, position, scaled);
+        pdf.insert_image(page_id, stream, position, scaled)
+            .map_err(|err| err.to_string())?;
 
         debug!("已向 pdf 插入图片：{:?}", ip);
 
@@ -371,7 +368,7 @@ pub async fn embedd_images_to_new_pdf(
     let pages = dictionary! {
         "Type" => "Pages",
         "Kids" => page_ids,
-        "Count" => Object::Integer(images.len().try_into().unwrap()),
+        "Count" => Object::Integer(images.len() as i64),
     };
 
     // 必需插入 pages
