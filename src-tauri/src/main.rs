@@ -30,7 +30,7 @@ use simplelog::{ColorChoice, CombinedLogger, TermLogger, TerminalMode, WriteLogg
 
 #[tauri::command]
 async fn merge_images_to_pdf(output: PathBuf, images: Vec<models::Image>) -> Result<(), String> {
-    embedd_images_to_new_pdf(output, images).map_err(|err| err.to_string())
+    embedd_images_to_new_pdf(output, images).await
 }
 
 #[tauri::command]

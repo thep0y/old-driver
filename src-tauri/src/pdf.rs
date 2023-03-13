@@ -106,17 +106,17 @@ pub fn page_size(page_type: &PageType) -> PageSize {
 struct ImageObject {}
 
 impl ImageObject {
-    fn new(path: &PathBuf) -> Result<(Stream, ImageSize)> {
+    async fn new(path: PathBuf) -> Result<(Stream, ImageSize)> {
         let mut file = File::open(&path)?;
         let mut buffer = Vec::new();
         file.read_to_end(&mut buffer)?;
 
-        debug!("打开一张图片: {:?}", path);
+        debug!("处理一张 pdf 图片: {:?}", path);
 
-        Self::image_from(buffer)
+        Self::image_from(buffer).await
     }
 
-    fn image_from(buffer: Vec<u8>) -> Result<(Stream, ImageSize)> {
+    async fn image_from(buffer: Vec<u8>) -> Result<(Stream, ImageSize)> {
         let img = image::load_from_memory(buffer.as_ref())?;
 
         let (width, height) = img.dimensions();
@@ -249,10 +249,10 @@ impl PDF {
         scale(image_size, &ImageSize::from(&self.page_size))
     }
 
-    fn add_image(&mut self, image: &models::Image) -> Result<ObjectId> {
+    async fn add_image(&mut self, image: models::Image) -> Result<ObjectId> {
         let page_id = self.add_blank_page();
 
-        let (image_stream, image_size) = ImageObject::new(&image.path)?;
+        let (image_stream, image_size) = ImageObject::new(image.path.clone()).await?;
 
         let scaled = self.scale(&image_size);
         debug!("图片缩放尺寸 {:?}", scaled);
@@ -262,19 +262,28 @@ impl PDF {
             (self.page_size.width as f32 - scaled.width as f32) / 2.0,
         ));
 
-        let result = self
-            .doc
-            .insert_image(page_id, image_stream, position.into(), scaled.into());
+        self.doc
+            .insert_image(page_id, image_stream, position.into(), scaled.into())
+            .map_err(|err| {
+                error!("添加图片时出错: {}", err);
 
-        if result.is_err() {
-            let err = result.err().unwrap();
-            error!("添加图片时出错: {:?}", err.to_string());
-            return Err(err);
-        }
+                return err.to_string();
+            });
 
         debug!("添加一图片 {:?}", image.path);
 
         Ok(page_id)
+    }
+
+    fn insert_image(
+        &mut self,
+        page_id: ObjectId,
+        image_stream: Stream,
+        position: Position,
+        size: ImageSize,
+    ) -> Result<()> {
+        self.doc
+            .insert_image(page_id, image_stream, position.into(), size.into())
     }
 
     fn insert_pages(&mut self, pages: Dictionary) {
@@ -313,20 +322,48 @@ impl PDF {
     }
 }
 
-/// 把图片嵌入 pdf
-pub fn embedd_images_to_new_pdf(
+/// 把图片嵌入 pdf。
+///
+/// 使用并发添加图片，并发时需要保存图片顺序不能错乱。
+pub async fn embedd_images_to_new_pdf(
     output: PathBuf,
     images: Vec<models::Image>,
 ) -> std::result::Result<(), String> {
     let mut pdf = PDF::new(PageType::A4);
 
-    let mut page_ids: Vec<Object> = Vec::new();
+    let mut tasks = Vec::with_capacity(images.len());
 
-    for img in images.iter() {
-        match pdf.add_image(img) {
-            Ok(page_id) => page_ids.push(page_id.into()),
-            Err(e) => return Err(e.to_string()),
-        }
+    for image in images.iter() {
+        let page_id = pdf.add_blank_page();
+        let path = image.path.clone();
+        tasks.push((page_id, &image.path, tokio::spawn(ImageObject::new(path))));
+    }
+
+    let mut page_ids: Vec<Object> = Vec::with_capacity(images.len());
+
+    for (page_id, ip, task) in tasks {
+        let (stream, image_size) = task
+            .await
+            .map_err(|err| {
+                error!("并发 join 时出错: {}", err);
+
+                return err.to_string();
+            })?
+            .map_err(|e| e.to_string())?;
+
+        let scaled = pdf.scale(&image_size);
+        debug!("图片缩放尺寸 {:?}", scaled);
+
+        let position = Position::from((
+            (pdf.page_size.width as f32 - image_size.width as f32) / 2.0,
+            (pdf.page_size.width as f32 - image_size.width as f32) / 2.0,
+        ));
+
+        pdf.insert_image(page_id, stream, position, scaled);
+
+        debug!("已向 pdf 插入图片：{:?}", ip);
+
+        page_ids.push(page_id.into());
     }
 
     let pages = dictionary! {
