@@ -25,6 +25,9 @@ time = { version = "0.3", features = ['formatting'] }
 dirs = "4.0"
 lazy_static = "1.4"
 base64 = "0.21"
+# tauri shell open 依赖库，但 3.4.0 有 bug，等 tauri 更新了依赖版本再删掉下面的依赖项
+open = "= 3.2.0"
+
 
 # 无边框时使用的库
 # window-shadows = { git = "https://github.com/tauri-apps/window-shadows" }

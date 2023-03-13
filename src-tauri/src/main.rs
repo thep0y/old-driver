@@ -13,12 +13,7 @@ extern crate log;
 extern crate simplelog;
 
 use std::fs;
-use std::io::Error;
-use std::process::Command;
 use std::{fs::File, path::PathBuf};
-
-#[cfg(not(target_os = "windows"))]
-use tauri::api::shell;
 
 use crate::image::Thumbnail;
 use crate::logger::{log_level, logger_config};
@@ -52,47 +47,6 @@ async fn generate_thumbnails(images: Vec<PathBuf>) -> Vec<Thumbnail> {
     outputs
 }
 
-#[cfg(target_os = "windows")]
-fn open_with_command(path: &str) -> Result<(), Error> {
-    let mut cmd = Command::new("cmd");
-    cmd.arg("/c").arg("start").arg("").arg(path);
-    cmd.output()?;
-
-    Ok(())
-}
-
-#[cfg(target_os = "windows")]
-#[tauri::command]
-async fn open_file(path: String) -> Result<(), String> {
-    debug!("打开 {}", path);
-
-    open_with_command(&path).map_err(|err| {
-        error!("打开文件时出错：{}", err);
-
-        return err.to_string();
-    })?;
-
-    Ok(())
-}
-
-// TODO: linux 或 macos 也有打开文件错误时再修改此方法
-// #[cfg(not(target_os = "windows"))]
-// #[tauri::command]
-// async fn open_file(handle: tauri::AppHandle, path: String) -> Result<(), String> {
-//     debug!("打开 {}", path);
-
-//     #[cfg(not(target_os = "windows"))]
-//     match shell::open(&handle.app_handle().shell_scope(), path, None) {
-//         Ok(()) => {}
-//         Err(e) => {
-//             error!("打开文件时出错：{}", e);
-//             return Err(e.to_string());
-//         }
-//     };
-
-//     Ok(())
-// }
-
 #[tokio::main]
 async fn main() {
     let config_dir = dirs::config_dir().unwrap();
@@ -124,25 +78,16 @@ async fn main() {
     ])
     .unwrap();
 
-    let mut app = tauri::Builder::default();
-    // .setup(|app| {
-    //     let window = app.get_window("main").unwrap();
-    //     set_shadow(&window, true).expect("Unsupported platform!");
-    //     Ok(())
-    // })
-
-    app = if cfg!(target_os = "windows") {
-        app.invoke_handler(tauri::generate_handler![
-            merge_images_to_pdf,
-            generate_thumbnails,
-            open_file
-        ])
-    } else {
-        app.invoke_handler(tauri::generate_handler![
+    tauri::Builder::default()
+        // .setup(|app| {
+        //     let window = app.get_window("main").unwrap();
+        //     set_shadow(&window, true).expect("Unsupported platform!");
+        //     Ok(())
+        // })
+        .invoke_handler(tauri::generate_handler![
             merge_images_to_pdf,
             generate_thumbnails
         ])
-    };
-    app.run(tauri::generate_context!())
+        .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
