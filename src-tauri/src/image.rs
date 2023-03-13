@@ -2,11 +2,14 @@ use base64::{engine::general_purpose, Engine as _};
 use image::ImageOutputFormat;
 use lazy_static::lazy_static;
 use serde::Serialize;
-use std::fs::{self, File};
-use std::io::{Cursor, Read};
+use std::fs;
+use std::io::Cursor;
 use std::path::PathBuf;
 
+use image::io::Reader as ImageReader;
 use image::{imageops::thumbnail, DynamicImage};
+
+use crate::error::Result;
 
 /// 缩略图最大宽度
 const MAX_THUMBNAIL_WIDTH: u16 = 210;
@@ -119,11 +122,14 @@ pub struct Thumbnail {
 }
 
 impl Thumbnail {
-    pub async fn new(image_path: PathBuf) -> Thumbnail {
+    pub async fn new(image_path: PathBuf) -> Result<Thumbnail> {
         trace!("创建缩略图：{:?}", image_path);
 
-        let b = Self::new_from_path(&image_path).await;
-        Thumbnail {
+        let b = Self::new_from_path(&image_path)
+            .await
+            .map_err(|err| err.to_string())?;
+
+        Ok(Thumbnail {
             src: image_path.clone(),
             base64: "data:image/png;base64, ".to_string() + &b,
             name: image_path
@@ -132,7 +138,7 @@ impl Thumbnail {
                 .to_str()
                 .unwrap()
                 .to_string(),
-        }
+        })
     }
 
     fn conver_size(img: &DynamicImage) -> ImageSize {
@@ -148,18 +154,22 @@ impl Thumbnail {
         )
     }
 
-    async fn new_from_path(image_path: &PathBuf) -> String {
-        let mut file = File::open(image_path).unwrap();
-        let mut buffer = Vec::new();
-        file.read_to_end(&mut buffer).unwrap();
-        let img = image::load_from_memory(buffer.as_ref()).unwrap();
+    async fn new_from_path(image_path: &PathBuf) -> Result<String> {
+        let reader = ImageReader::open(image_path).map_err(|err| {
+            error!("读取图片时出错：{}", err);
+            err.to_string()
+        })?;
+        let img = reader.decode().map_err(|err| {
+            error!("图片解码时出错：{}", err);
+            err.to_string()
+        })?;
 
-        Self::new_from_image(&img).await
+        Self::new_from_image(image_path, &img).await
     }
 
-    async fn new_from_image(img: &DynamicImage) -> String {
+    async fn new_from_image(image_path: &PathBuf, img: &DynamicImage) -> Result<String> {
         let scaled_size = Self::conver_size(img);
-        trace!("缩略图尺寸 {:?}", scaled_size);
+        trace!("缩略图 {:?} 尺寸 {:?}", image_path, scaled_size);
 
         let image_buf = thumbnail(img, scaled_size.width, scaled_size.height);
 
@@ -167,8 +177,11 @@ impl Thumbnail {
 
         image_buf
             .write_to(&mut Cursor::new(&mut buffer), ImageOutputFormat::Png)
-            .unwrap();
+            .map_err(|err| {
+                error!("图片缓存写入缓存时出错：{}", err);
+                err.to_string()
+            })?;
 
-        general_purpose::STANDARD.encode(buffer)
+        Ok(general_purpose::STANDARD.encode(buffer))
     }
 }

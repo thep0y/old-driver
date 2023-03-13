@@ -3,6 +3,7 @@
     windows_subsystem = "windows"
 )]
 
+mod error;
 mod image;
 mod logger;
 mod models;
@@ -31,7 +32,6 @@ async fn merge_images_to_pdf(output: PathBuf, images: Vec<models::Image>) -> Res
 #[tauri::command]
 async fn generate_thumbnails(images: Vec<PathBuf>) -> Vec<Thumbnail> {
     debug!("创建缩略图 {:?}", images);
-    // let mut thumbnails = Vec::<Thumbnail>::new();
 
     let mut tasks = Vec::with_capacity(images.len());
 
@@ -41,7 +41,7 @@ async fn generate_thumbnails(images: Vec<PathBuf>) -> Vec<Thumbnail> {
 
     let mut outputs = Vec::with_capacity(tasks.len());
     for task in tasks {
-        outputs.push(task.await.unwrap());
+        outputs.push(task.await.unwrap().unwrap());
     }
 
     outputs
