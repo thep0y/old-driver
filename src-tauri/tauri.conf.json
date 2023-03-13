@@ -71,6 +71,7 @@
       "shortDescription": "",
       "targets": "all",
       "windows": {
+        "allowDowngrades": false,
         "certificateThumbprint": null,
         "digestAlgorithm": "sha256",
         "timestampUrl": "",
