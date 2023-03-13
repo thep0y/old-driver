@@ -40,7 +40,7 @@ export const generateThumbnails = async (selected: string[]): Promise<Thumbnail[
   // 当你在应用程序中使用拖放文件时，通常无法保证文件的顺序。
   // 这是因为不同的操作系统和文件管理器会以不同的顺序返回拖放的文件列表。
   // 这里选择使用 js 将文件名从小到大排列。
-  const thumbnails = await invoke<Thumbnail[]>('generate_thumbnails', { images: images.sort((a, b) => a.localeCompare(b)) })
+  const thumbnails = await invoke<Thumbnail[]>('generate_thumbnails', { images: images.sort((a, b) => a.localeCompare(b, 'zh-Hans-CN-u-co-pinyin', { numeric: true })) })
 
   return thumbnails
 }
