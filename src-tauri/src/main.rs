@@ -15,7 +15,7 @@ extern crate simplelog;
 use std::fs;
 use std::io::Error;
 use std::process::Command;
-use std::{env, fs::File, path::PathBuf};
+use std::{fs::File, path::PathBuf};
 
 #[cfg(not(target_os = "windows"))]
 use tauri::api::shell;
@@ -30,10 +30,7 @@ use simplelog::{ColorChoice, CombinedLogger, TermLogger, TerminalMode, WriteLogg
 
 #[tauri::command]
 async fn merge_images_to_pdf(output: PathBuf, images: Vec<models::Image>) -> Result<(), String> {
-    match embedd_images_to_new_pdf(output, images) {
-        Ok(()) => Ok(()),
-        Err(e) => Err(e),
-    }
+    embedd_images_to_new_pdf(output, images).map_err(|err| err.to_string())
 }
 
 #[tauri::command]
@@ -69,33 +66,32 @@ fn open_with_command(path: &str) -> Result<(), Error> {
 async fn open_file(path: String) -> Result<(), String> {
     debug!("打开 {}", path);
 
-    match open_with_command(&path) {
-        Ok(()) => {}
-        Err(e) => {
-            error!("打开文件时出错：{}", e);
-            return Err(e.to_string());
-        }
-    };
+    open_with_command(&path).map_err(|err| {
+        error!("打开文件时出错：{}", err);
+
+        return err.to_string();
+    })?;
 
     Ok(())
 }
 
-#[cfg(not(target_os = "windows"))]
-#[tauri::command]
-async fn open_file(handle: tauri::AppHandle, path: String) -> Result<(), String> {
-    debug!("打开 {}", path);
+// TODO: linux 或 macos 也有打开文件错误时再修改此方法
+// #[cfg(not(target_os = "windows"))]
+// #[tauri::command]
+// async fn open_file(handle: tauri::AppHandle, path: String) -> Result<(), String> {
+//     debug!("打开 {}", path);
 
-    #[cfg(not(target_os = "windows"))]
-    match shell::open(&handle.app_handle().shell_scope(), path, None) {
-        Ok(()) => {}
-        Err(e) => {
-            error!("打开文件时出错：{}", e);
-            return Err(e.to_string());
-        }
-    };
+//     #[cfg(not(target_os = "windows"))]
+//     match shell::open(&handle.app_handle().shell_scope(), path, None) {
+//         Ok(()) => {}
+//         Err(e) => {
+//             error!("打开文件时出错：{}", e);
+//             return Err(e.to_string());
+//         }
+//     };
 
-    Ok(())
-}
+//     Ok(())
+// }
 
 #[tokio::main]
 async fn main() {
@@ -128,17 +124,25 @@ async fn main() {
     ])
     .unwrap();
 
-    tauri::Builder::default()
-        // .setup(|app| {
-        //     let window = app.get_window("main").unwrap();
-        //     set_shadow(&window, true).expect("Unsupported platform!");
-        //     Ok(())
-        // })
-        .invoke_handler(tauri::generate_handler![
+    let mut app = tauri::Builder::default();
+    // .setup(|app| {
+    //     let window = app.get_window("main").unwrap();
+    //     set_shadow(&window, true).expect("Unsupported platform!");
+    //     Ok(())
+    // })
+
+    app = if cfg!(target_os = "windows") {
+        app.invoke_handler(tauri::generate_handler![
             merge_images_to_pdf,
             generate_thumbnails,
             open_file
         ])
-        .run(tauri::generate_context!())
+    } else {
+        app.invoke_handler(tauri::generate_handler![
+            merge_images_to_pdf,
+            generate_thumbnails
+        ])
+    };
+    app.run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

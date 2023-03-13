@@ -94,7 +94,7 @@ const FloatButtons: React.FC<Props> = (props) => {
           try {
             await invoke<null>('merge_images_to_pdf', {
               output: filePath,
-              images
+              images: images.map(v => ({ path: v.src }))
             })
 
             // 使用系统默认阅读器打开 pdf

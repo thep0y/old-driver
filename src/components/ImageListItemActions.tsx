@@ -7,8 +7,8 @@ import {
   UndoOutlined,
   SettingOutlined
 } from '@ant-design/icons'
-// import { open } from '@tauri-apps/api/shell'
-import { invoke } from '@tauri-apps/api'
+import { open } from '@tauri-apps/api/shell'
+import { invoke, os } from '@tauri-apps/api'
 
 interface ActionsProps {
   show: boolean
@@ -35,8 +35,11 @@ const Actions: React.FC<ActionsProps> = (props) => {
             icon={<EyeOutlined />}
             onClick={async () => {
               try {
-                // await open(`"" "${path}"`)
-                await invoke('open_file', { path })
+                if (await os.platform() === 'win32') {
+                  await invoke('open_file', { path })
+                } else {
+                  await open(path)
+                }
               } catch (e) {
                 console.error(e)
               }
