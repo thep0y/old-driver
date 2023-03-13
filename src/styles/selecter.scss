@@ -5,6 +5,14 @@
  * modified 2023-03-08 13:41:52
  */
 
+.selecting.ant-spin-nested-loading {
+  height: 100%;
+
+  .ant-spin-container {
+    height: 100%;
+  }
+}
+
 #selecter.ant-upload-wrapper {
   box-sizing: border-box;
   margin: 0;
@@ -16,14 +24,6 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
     "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-
-  .ant-spin-nested-loading {
-    height: 100%;
-
-    .ant-spin-container {
-      height: 100%;
-    }
-  }
 
   .ant-upload-drag:not(.ant-upload-disabled):hover {
     border-color: #4096ff;

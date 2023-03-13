@@ -9,7 +9,7 @@ use std::path::PathBuf;
 use image::{imageops::thumbnail, DynamicImage};
 
 /// 缩略图最大宽度
-const MAX_THUMBNAIL_WIDTH: u16 = 226;
+const MAX_THUMBNAIL_WIDTH: u16 = 210;
 /// 缩略图最大高度
 const MAX_THUMBNAIL_HEIGHT: u16 = 297;
 

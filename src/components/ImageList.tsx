@@ -1,5 +1,5 @@
 import React, { useState, lazy, useEffect } from 'react'
-import { Card, List, Spin } from 'antd'
+import { Card, List, message, Spin } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
 import type { DragEndEvent } from '@dnd-kit/core'
 import { DndContext, PointerSensor, useSensor } from '@dnd-kit/core'
@@ -41,6 +41,10 @@ const ImageList: React.FC = () => {
     }
   }, [images])
 
+  useEffect(() => {
+    void message.info('已生成缩略图，如果图片顺序不正确，你可通过拖动图片以调整顺序。')
+  }, [])
+
   const [loading, setLoading] = useState(false)
 
   const removeImage = (path: string): void => {
@@ -61,8 +65,6 @@ const ImageList: React.FC = () => {
       })
     }
   }
-
-  console.log(images)
 
   return (
     <Spin
@@ -97,7 +99,7 @@ const ImageList: React.FC = () => {
                       originNode={(
                         <Card
                           hoverable
-                          style={{ width: 226, height: 319 }}
+                          style={{ width: 210, height: 319 }}
                           cover={<img alt={item.name} src={item.base64} />}
                           extra={(
                             <React.Suspense>

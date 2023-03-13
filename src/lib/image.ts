@@ -34,8 +34,6 @@ export const filterImages = async (files: string[]): Promise<string[]> => {
 export const generateThumbnails = async (images: string[]): Promise<Thumbnail[]> => {
   const thumbnails = await invoke<Thumbnail[]>('generate_thumbnails', { images })
 
-  console.log(thumbnails)
-
   return thumbnails
 }
 
