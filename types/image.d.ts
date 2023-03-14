@@ -25,3 +25,16 @@ declare interface Thumbnail {
   base64: string
   name: string
 }
+
+type KeyOfType<T, U> = {
+  [K in keyof T]: T[K] extends U ? K : never;
+}[keyof T]
+
+type SortedObject<T = string | number> = Record<string | number, T> & Record<string | number, any>
+
+declare function deduplicate<T = number | string> (arr: T[], target: T[]): T[]
+declare function deduplicate<T = SortedObject> (
+  arr: T[],
+  target: T[],
+  property: KeyOfType<T, number | string>
+): T[]
