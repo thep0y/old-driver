@@ -15,8 +15,6 @@ const isObject = (variable: any): boolean => {
 }
 
 export const deduplicate = <T = number | string | SortedObject>(arr: T[], target: T[], property?: KeyOfType<T, number | string>): T[] => {
-  console.log(arr)
-  console.log(target)
   if (isObject(arr[0])) {
     if (property == null) {
       throw Error('对数组对象去重时，必需传入作为判断条件的属性名')
@@ -69,7 +67,6 @@ export const sortPathsByFilename = (a: string, b: string): number => {
 export const generateThumbnails = async (
   selected: string[]
 ): Promise<Thumbnail[]> => {
-  console.log(selected)
   // 先对路径去重
   const payload = [...new Set(selected)]
 
