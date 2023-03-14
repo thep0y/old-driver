@@ -1,10 +1,10 @@
-import React, { useState, lazy, useEffect } from 'react'
+import React, { useState, lazy, useEffect, useRef, useCallback } from 'react'
 import { Card, List, message, Spin } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
 import type { DragEndEvent } from '@dnd-kit/core'
 import { DndContext, PointerSensor, useSensor } from '@dnd-kit/core'
 import { appWindow } from '@tauri-apps/api/window'
-import { TauriEvent } from '@tauri-apps/api/event'
+import { type Event, TauriEvent } from '@tauri-apps/api/event'
 import {
   arrayMove,
   SortableContext,
@@ -12,7 +12,7 @@ import {
 } from '@dnd-kit/sortable'
 
 import '~/styles/imageList.scss'
-import { generateThumbnails } from '~/lib'
+import { generateThumbnails, deduplicate } from '~/lib'
 
 const { Meta } = Card
 
@@ -33,13 +33,17 @@ interface State {
 }
 
 const ImageList: React.FC = () => {
-  const location = useLocation()
-  const { state }: { state: State } = location
+  const { state }: { state: State } = useLocation()
   const [images, setImages] = useState(state.images)
+
+  // const imagesRef = useRef(images)
+
   const navigate = useNavigate()
 
   const [loading, setLoading] = useState(false)
-  const [genertating, setGenertating] = useState(false)
+  const [genertating, setGenerating] = useState(false)
+
+  const imagesRef = useRef(images)
 
   useEffect(() => {
     if (images.length === 0) {
@@ -51,17 +55,38 @@ const ImageList: React.FC = () => {
     void message.info('已生成缩略图，如果图片顺序不正确，你可通过拖动图片以调整顺序。')
   }, [])
 
+  const handleFileDrop = useCallback(async (e: Event<string[]>) => {
+    setGenerating(true)
+    // 再次添加文件时可能会存在添加一些重复文件，所以这里需要对文件去重
+    const deduplicated = deduplicate(e.payload, imagesRef.current.map((v) => v.src))
+
+    if (deduplicated.length === 0) {
+      setGenerating(false)
+
+      return
+    }
+    const thumbnails = await generateThumbnails(deduplicated)
+
+    setGenerating(false)
+
+    // TODO: 全局配置文件中添加“新增图片后排序”的选项，此选项默认关闭。
+    setImages((prevImages) => [...prevImages, ...thumbnails])
+  }, [imagesRef])
+
   useEffect(() => {
-    void appWindow.listen<string[]>(TauriEvent.WINDOW_FILE_DROP, async (e) => {
-      setGenertating(true)
+    const unlisten = appWindow.listen<string[]>(
+      TauriEvent.WINDOW_FILE_DROP,
+      handleFileDrop
+    )
 
-      const thumbnails = await generateThumbnails(e.payload)
+    return () => {
+      void unlisten.then(fn => { fn() })
+    }
+  }, [handleFileDrop])
 
-      setGenertating(false)
-
-      setImages(images.concat(thumbnails))
-    })
-  })
+  useEffect(() => {
+    imagesRef.current = images
+  }, [images])
 
   const removeImage = (path: string): void => {
     setImages(images.filter((item) => item.src !== path))
