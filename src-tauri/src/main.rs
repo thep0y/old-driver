@@ -47,8 +47,24 @@ async fn generate_thumbnails(images: Vec<PathBuf>) -> Vec<Thumbnail> {
     outputs
 }
 
+#[cfg(target_os = "linux")]
+fn set_gtk_scale_env() {
+    let sesstion_type = match std::env::var("XDG_SESSION_TYPE") {
+        Ok(e) => e,
+        Err(_) => "X11".to_string(),
+    };
+
+    if sesstion_type.to_uppercase() == "X11" {
+        std::env::set_var("GDK_SCALE", "2");
+        std::env::set_var("GDK_DPI_SCALE", "0.5");
+    }
+}
+
 #[tokio::main]
 async fn main() {
+    #[cfg(target_os = "linux")]
+    set_gtk_scale_env();
+
     let config_dir = dirs::config_dir().unwrap();
 
     // 配置目录名符合不同系统的命名风格
