@@ -24,16 +24,22 @@ const Selecter: React.FC = () => {
   const [genertating, setGenertating] = useState(false)
 
   useEffect(() => {
-    void appWindow.listen<string[]>(TauriEvent.WINDOW_FILE_DROP, async (e) => {
+    // 主页只执行一次的监听事件
+    const unlisten = appWindow.once<string[]>(TauriEvent.WINDOW_FILE_DROP, async (e) => {
       setGenertating(true)
 
+      // 使用文管选择文件和拖拽文件时操作系统会禁止路径重复，这里不需要去重。
       const thumbnails = await generateThumbnails(e.payload)
 
       setGenertating(false)
 
       navigate('/image-list', { state: { images: thumbnails } })
+
+      return () => {
+        void unlisten.then(fn => { fn() })
+      }
     })
-  })
+  }, [])
 
   return (
     <Spin
