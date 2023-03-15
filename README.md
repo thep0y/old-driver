@@ -6,7 +6,13 @@
 
 本项目可视化部分使用 tauri + React 开发，PDF 处理部分使用国人开发的 low-level 库 lopdf，因为是 low-level，对 PDF 的处理都是低层级的、未经封装的代码，而我对 PDF 了解不深，所以非常欢迎对 PDF 有了解的人提交 PR 来改进代码中的不足之处。
 
-## 开发环境
+## 安装
+
+当前未提供全平台安装包，但部分平台已编译，为了提高国内用户下载速度，暂不在 release 中上传，改用国内网盘：https://www.123pan.com/s/Q61bVv-nshvd.html
+
+## 开发
+
+### 开发环境
 
 需要以下环境：
 
@@ -16,6 +22,30 @@
 需要以下依赖：
 
 - [upx](https://github.com/upx/upx)：添加到环境变量
+
+### 安装依赖
+
+只需手动安装前端依赖：
+
+```bash
+pnpm i
+```
+
+### 运行
+
+执行运行命令后会自动安装 rust 依赖：
+
+```bash
+pnpm dev
+```
+
+### 开发
+
+前端用的 vite，本身支持热重载，无需多说。
+
+后端的 tauri 也支持重载，但不是热重载，后端代码或引用的文件一旦更改，会自动编译并重新启动。
+
+需要注意的是，开发时尽量不要用`cargo update`更新 rust 依赖，有些依赖在跨版本后会出现不兼容或冲突的情况。
 
 ## 原理
 
@@ -99,4 +129,15 @@ const ImageList: React.FC = () => {
 
 1. 上述功能列表中未实现的功能有很多，希望有兴趣的朋友能够帮忙添加一些功能。
 2. 当前图标是我使用的开源图标站中的一个 PDF 文件图标，希望有设计能力的朋友能帮忙设计一款美观的图标。
-3. 我自己使用时很难遇到没修复的 bug，希望在使用过程中遇到 bug 的朋友提 issue。
+3. 前端页面当前使用的是 antd 的默认风格，需要有经验的设计师帮忙重新设计一下。
+4. 我自己使用时很难遇到没修复的 bug，希望在使用过程中遇到 bug 的朋友提 issue。
+
+## 致谢
+
+感谢：
+
+- [vite](https://github.com/vitejs/vite)，是前端使用的构建工具。
+- [react](https://github.com/facebook/react)，是构建前端界面的 JavaScript 库。
+- [antd](https://github.com/ant-design/ant-design)，是构建前端界面的 React 组件库。
+- [tauri](https://github.com/tauri-apps/tauri)，是用于构建跨平台原生应用程序的工具包。
+- [lopdf](https://github.com/J-F-Liu/lopdf)，是 PDF 处理的核心库，由国人开发。
