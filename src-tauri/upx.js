@@ -105,23 +105,22 @@ async function compress() {
           return;
         }
 
-        const temp_file = path.join(temp_dir, "upx.zip")
+        const temp_file = path.join(temp_dir, "upx.zip");
 
         await downloadFileAsync(url, temp_file);
 
-        excecute(`expand ${temp_file} -f:* ${temp_dir}`)
+        excecute(`expand ${temp_file} -f:* ${temp_dir}`);
 
-        cmd = path.join(temp_dir, "upx.exe")
+        cmd = path.join(temp_dir, "upx.exe");
 
         break;
       case "linux":
         console.error("linux 尚未支持自动下载 upx");
         return;
     }
-
   }
 
-  excecute(cmd)
+  excecute(cmd);
 }
 
-compress()
+compress();
