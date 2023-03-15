@@ -1,0 +1,7 @@
+[Desktop Entry]
+Categories=Office;
+Exec=old-driver
+Icon=old-driver
+Name=PDF 老司机
+Terminal=false
+Type=Application

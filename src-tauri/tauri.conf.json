@@ -48,7 +48,10 @@
       "category": "Utility",
       "copyright": "",
       "deb": {
-        "depends": []
+        "depends": [],
+        "files": {
+          "/usr/share/applications/old-driver.desktop": "./linux/old-driver.desktop"
+        }
       },
       "externalBin": [],
       "icon": [
