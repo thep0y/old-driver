@@ -55,6 +55,20 @@ function cmdExists(cmd) {
 }
 
 function excecute(cmd) {
+  cmd += " -9 src-tauri/target/release/";
+
+  switch (os.platform()) {
+    case "darwin":
+    case "linux":
+      cmd += "old-driver";
+      break;
+    case "win32":
+      cmd += "old-driver.exe";
+    default:
+      console.log("不支持此平台");
+      process.exit(1);
+  }
+
   exec(cmd, (err, stdout, stderr) => {
     if (err) {
       console.error(err);
