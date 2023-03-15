@@ -7,6 +7,7 @@ mod error;
 mod image;
 mod logger;
 mod models;
+mod path;
 mod pdf;
 
 #[macro_use]
@@ -16,6 +17,7 @@ extern crate simplelog;
 use std::fs;
 use std::{fs::File, path::PathBuf};
 
+use crate::error::Result;
 use crate::image::Thumbnail;
 use crate::logger::{log_level, logger_config};
 use crate::pdf::embedd_images_to_new_pdf;
@@ -25,12 +27,12 @@ use simplelog::{ColorChoice, CombinedLogger, TermLogger, TerminalMode, WriteLogg
 // use window_shadows::set_shadow;
 
 #[tauri::command]
-async fn merge_images_to_pdf(output: PathBuf, images: Vec<models::Image>) -> Result<(), String> {
+async fn merge_images_to_pdf(output: PathBuf, images: Vec<models::Image>) -> Result<()> {
     embedd_images_to_new_pdf(output, images).await
 }
 
 #[tauri::command]
-async fn generate_thumbnails(images: Vec<PathBuf>) -> Vec<Thumbnail> {
+async fn generate_thumbnails(images: Vec<PathBuf>) -> Result<Vec<Thumbnail>> {
     debug!("创建缩略图 {:?}", images);
 
     let mut tasks = Vec::with_capacity(images.len());
@@ -41,10 +43,21 @@ async fn generate_thumbnails(images: Vec<PathBuf>) -> Vec<Thumbnail> {
 
     let mut outputs = Vec::with_capacity(tasks.len());
     for task in tasks {
-        outputs.push(task.await.unwrap().unwrap());
+        let res = task
+            .await
+            .map_err(|e| {
+                error!("并发 join 出错：{}", e);
+                e.to_string()
+            })?
+            .map_err(|e| {
+                error!("并发处理缩略图时出错：{}", e);
+                e.to_string()
+            })?;
+
+        outputs.push(res);
     }
 
-    outputs
+    Ok(outputs)
 }
 
 #[cfg(target_os = "linux")]

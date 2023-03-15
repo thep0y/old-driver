@@ -2,7 +2,6 @@ use base64::{engine::general_purpose, Engine as _};
 use image::ImageOutputFormat;
 use lazy_static::lazy_static;
 use serde::Serialize;
-use std::fs;
 use std::io::Cursor;
 use std::path::PathBuf;
 use std::process::exit;
@@ -11,6 +10,7 @@ use image::io::Reader as ImageReader;
 use image::{imageops::thumbnail, DynamicImage};
 
 use crate::error::Result;
+use crate::path::create_dir;
 
 /// 缩略图最大宽度
 const MAX_THUMBNAIL_WIDTH: u16 = 210;
@@ -32,15 +32,8 @@ lazy_static! {
             cache_dir = cache_dir.join("old-driver");
         };
 
-        if !cache_dir.exists() {
-            match fs::create_dir(&cache_dir) {
-                Ok(()) => debug!("创建缓存目录：{:?}", cache_dir),
-                Err(e) => {
-                    error!("创建缓存目录时出错：{}", e);
-                    exit(1);
-                }
-            };
-        }
+        // create_dir 中已记录错误日志，这里直接使用 unwrap 即可
+        create_dir(&cache_dir).unwrap();
 
         cache_dir
     };
