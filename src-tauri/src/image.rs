@@ -5,6 +5,7 @@ use serde::Serialize;
 use std::fs;
 use std::io::Cursor;
 use std::path::PathBuf;
+use std::process::exit;
 
 use image::io::Reader as ImageReader;
 use image::{imageops::thumbnail, DynamicImage};
@@ -18,7 +19,13 @@ const MAX_THUMBNAIL_HEIGHT: u16 = 297;
 
 lazy_static! {
     static ref TEMP_DIR: PathBuf = {
-        let mut cache_dir = dirs::cache_dir().unwrap();
+        let mut cache_dir = match dirs::cache_dir() {
+            None => {
+                error!("未能找到当前平台的缓存目录");
+                exit(1);
+            }
+            Some(pb) => pb,
+        };
         if cfg!(target_os = "windows") {
             cache_dir = cache_dir.join("OldDriver");
         } else {
@@ -26,7 +33,13 @@ lazy_static! {
         };
 
         if !cache_dir.exists() {
-            fs::create_dir(&cache_dir).unwrap();
+            match fs::create_dir(&cache_dir) {
+                Ok(()) => debug!("创建缓存目录：{:?}", cache_dir),
+                Err(e) => {
+                    error!("创建缓存目录时出错：{}", e);
+                    exit(1);
+                }
+            };
         }
 
         cache_dir
