@@ -141,3 +141,7 @@ const ImageList: React.FC = () => {
 - [antd](https://github.com/ant-design/ant-design)，是构建前端界面的 React 组件库。
 - [tauri](https://github.com/tauri-apps/tauri)，是用于构建跨平台原生应用程序的工具包。
 - [lopdf](https://github.com/J-F-Liu/lopdf)，是 PDF 处理的核心库，由国人开发。
+
+## License
+
+OldDriver 项目基于 **MIT 协议**，请自由地享受和参与开源。
