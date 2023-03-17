@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, lazy } from 'react'
 import { Spin } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
@@ -7,6 +7,10 @@ import { TauriEvent } from '@tauri-apps/api/event'
 import { appWindow } from '@tauri-apps/api/window'
 import '~/styles/selecter.scss'
 import { generateThumbnails, selectImages } from '~/lib'
+
+const FloatButtons = lazy(
+  async () => await import('~/components/FloatButtons')
+)
 
 const select = async (navigate: NavigateFunction): Promise<void> => {
   const selected = await selectImages()
@@ -70,6 +74,10 @@ const Selecter: React.FC = () => {
           </span>
         </div>
       </span>
+
+      <React.Suspense>
+        <FloatButtons />
+      </React.Suspense>
     </Spin>
   )
 }
