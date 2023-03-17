@@ -11,41 +11,89 @@ import { invoke } from '@tauri-apps/api'
 import { save } from '@tauri-apps/api/dialog'
 import { open } from '@tauri-apps/api/shell'
 import { documentDir } from '@tauri-apps/api/path'
-import { getVersion } from '@tauri-apps/api/app'
+import { getVersion, getTauriVersion } from '@tauri-apps/api/app'
+import { version, type as platformType, arch } from '@tauri-apps/api/os'
 import { selectImages } from '~/lib'
 
 const about = async (): Promise<void> => {
-  const version = await getVersion()
+  const v = await getVersion()
+  const tauri = await getTauriVersion()
   const repoURL = 'https://github.com/thep0y/old-driver'
   const license = 'https://github.com/thep0y/old-driver/blob/main/LICENSE'
+
+  const systemVersion = await version()
+  const systemArch = await arch()
+
+  const getSystem = async (): Promise<string> => {
+    switch (await platformType()) {
+      case 'Windows_NT':
+        return 'Windows'
+      case 'Darwin':
+        return 'macOS'
+      case 'Linux':
+        return 'Linux'
+    }
+  }
 
   Modal.info({
     title: '关于',
     content: (
       <>
+        <br />
+
         <div>
           <p>
-            当前版本：
-            {version}
+            版本：
+            {v}
           </p>
         </div>
 
         <div>
           <p>
-            仓库地址：
-            <a onClick={async () => { await open(repoURL) }}>{repoURL}</a>
+            地址：
+            <a
+              onClick={async () => {
+                await open(repoURL)
+              }}
+            >
+              {repoURL}
+            </a>
           </p>
         </div>
 
         <div>
           <p>
-            LICENSE ：
-            <a onClick={async () => { await open(license) }}>MIT</a>
+            证书：
+            <a
+              onClick={async () => {
+                await open(license)
+              }}
+            >
+              MIT
+            </a>
+          </p>
+        </div>
+
+        <div>
+          <p>
+            tauri：
+            {tauri}
+          </p>
+        </div>
+
+        <div>
+          <p>
+            系统：
+            {await getSystem()}
+            {' '}
+            {systemArch}
+            {' '}
+            {systemVersion}
           </p>
         </div>
       </>
     ),
-    onOk () {}
+    onOk () { }
   })
 }
 
@@ -66,7 +114,7 @@ const FloatButtons: React.FC<Props> = (props) => {
         onClick={about}
       />
 
-      { (images != null)
+      {images != null
         ? (
           <FloatButton
             icon={<PlusOutlined />}
@@ -82,7 +130,7 @@ const FloatButtons: React.FC<Props> = (props) => {
           )
         : null}
 
-      { (images != null)
+      {images != null
         ? (
           <FloatButton
             icon={<ReloadOutlined />}
@@ -94,7 +142,7 @@ const FloatButtons: React.FC<Props> = (props) => {
           )
         : null}
 
-      { (images != null)
+      {images != null
         ? (
           <FloatButton
             type="primary"
@@ -125,7 +173,7 @@ const FloatButtons: React.FC<Props> = (props) => {
               try {
                 await invoke<null>('merge_images_to_pdf', {
                   output: filePath,
-                  images: images.map(v => ({ path: v.src }))
+                  images: images.map((v) => ({ path: v.src }))
                 })
 
                 // 使用系统默认阅读器打开 pdf
@@ -145,14 +193,12 @@ const FloatButtons: React.FC<Props> = (props) => {
           )
         : null}
 
-      <FloatButton
-        icon={<SettingOutlined />}
-        tooltip={<div>设置</div>}
-      />
+      <FloatButton icon={<SettingOutlined />} tooltip={<div>设置</div>} />
 
-      { (images != null)
+      {images != null
         ? <FloatButton.BackTop visibilityHeight={0} />
-        : null }
+        : null}
+
     </FloatButton.Group>
   )
 }
