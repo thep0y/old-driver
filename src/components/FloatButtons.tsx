@@ -14,16 +14,36 @@ import { documentDir } from '@tauri-apps/api/path'
 import { getVersion } from '@tauri-apps/api/app'
 import { selectImages } from '~/lib'
 
-const version = async (): Promise<void> => {
+const about = async (): Promise<void> => {
+  const version = await getVersion()
+  const repoURL = 'https://github.com/thep0y/old-driver'
+  const license = 'https://github.com/thep0y/old-driver/blob/main/LICENSE'
+
   Modal.info({
     title: '关于',
     content: (
-      <div>
-        <p>
-          当前版本：
-          {await getVersion()}
-        </p>
-      </div>
+      <>
+        <div>
+          <p>
+            当前版本：
+            {version}
+          </p>
+        </div>
+
+        <div>
+          <p>
+            仓库地址：
+            <a onClick={async () => { await open(repoURL) }}>{repoURL}</a>
+          </p>
+        </div>
+
+        <div>
+          <p>
+            LICENSE ：
+            <a onClick={async () => { await open(license) }}>MIT</a>
+          </p>
+        </div>
+      </>
     ),
     onOk () {}
   })
@@ -43,7 +63,7 @@ const FloatButtons: React.FC<Props> = (props) => {
       <FloatButton
         icon={<InfoCircleOutlined />}
         tooltip={<div>关于</div>}
-        onClick={version}
+        onClick={about}
       />
 
       { (images != null)
