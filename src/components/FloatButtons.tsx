@@ -2,7 +2,7 @@ import React from 'react'
 import { FloatButton, message, Modal } from 'antd'
 import {
   MergeCellsOutlined,
-  QuestionCircleOutlined,
+  InfoCircleOutlined,
   ReloadOutlined,
   PlusOutlined,
   SettingOutlined
@@ -41,8 +41,8 @@ const FloatButtons: React.FC<Props> = (props) => {
   return (
     <FloatButton.Group shape="circle" style={{ right: 24 }}>
       <FloatButton
-        icon={<QuestionCircleOutlined />}
-        tooltip={<div>帮助</div>}
+        icon={<InfoCircleOutlined />}
+        tooltip={<div>关于</div>}
         onClick={version}
       />
 
