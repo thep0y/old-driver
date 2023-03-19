@@ -18,10 +18,13 @@
 
 - nodejs 18+ with pnpm
 - rust
+- python3
 
 需要以下依赖：
 
 - [upx](https://github.com/upx/upx)：添加到环境变量
+
+环境变量中的 python 命令应指向 python3。
 
 ### 安装依赖
 
