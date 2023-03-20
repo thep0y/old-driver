@@ -1,4 +1,4 @@
-import React, { useEffect, useState, lazy, useCallback } from 'react'
+import React, { useEffect, useState, lazy, useCallback, memo } from 'react'
 import { Spin } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
@@ -85,4 +85,4 @@ const Selecter: React.FC = () => {
   )
 }
 
-export default Selecter
+export default memo(Selecter)
