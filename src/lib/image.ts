@@ -83,7 +83,7 @@ export const generateThumbnails = async (
   return thumbnails
 }
 
-export const selectImages = async (): Promise<Thumbnail[] | null> => {
+export const selectImages = async (): Promise<string[] | null> => {
   const selected = await open({
     multiple: true,
     filters: [
@@ -100,9 +100,5 @@ export const selectImages = async (): Promise<Thumbnail[] | null> => {
     return null
   }
 
-  if (Array.isArray(selected)) {
-    return await generateThumbnails(selected)
-  }
-
-  return await generateThumbnails([selected])
+  return selected as string[]
 }
