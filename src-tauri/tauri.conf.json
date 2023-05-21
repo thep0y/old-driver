@@ -8,7 +8,7 @@
     "withGlobalTauri": false
   },
   "package": {
-    "productName": "old-driver",
+    "productName": "pod",
     "version": "../package.json"
   },
   "tauri": {
@@ -61,7 +61,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.thepoy.olddriver",
+      "identifier": "com.thepoy.pod",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -79,7 +79,11 @@
         "digestAlgorithm": "sha256",
         "timestampUrl": "",
         "wix": {
-          "language": { "zh-CN": { "localePath": "./wix/locales/zh-CN.wxl" } },
+          "language": {
+            "zh-CN": {
+              "localePath": "./wix/locales/zh-CN.wxl"
+            }
+          },
           "template": "./wix/app.wxs"
         }
       }

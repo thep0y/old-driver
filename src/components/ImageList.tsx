@@ -36,8 +36,6 @@ const ImageList: React.FC = () => {
   const { state }: { state: State } = useLocation()
   const [images, setImages] = useState(state.images)
 
-  // const imagesRef = useRef(images)
-
   const navigate = useNavigate()
 
   const [loading, setLoading] = useState(false)
@@ -69,7 +67,7 @@ const ImageList: React.FC = () => {
 
     setGenerating(false)
 
-    // TODO: 全局配置文件中添加“新增图片后排序”的选项，此选项默认关闭。
+    // TODO: 全局配置文件中添加“新增图片后排序”的选项，但此选项默认关闭。
     setImages((prevImages) => [...prevImages, ...thumbnails])
   }, [imagesRef])
 

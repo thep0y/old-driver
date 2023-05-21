@@ -1,11 +1,11 @@
-import React from 'react'
+import React, { lazy, useCallback, useState } from 'react'
 import { FloatButton, message, Modal } from 'antd'
 import {
   MergeCellsOutlined,
   InfoCircleOutlined,
   ReloadOutlined,
   PlusOutlined,
-  SettingOutlined
+  SettingOutlined,
 } from '@ant-design/icons'
 import { invoke } from '@tauri-apps/api'
 import { save } from '@tauri-apps/api/dialog'
@@ -14,6 +14,8 @@ import { documentDir } from '@tauri-apps/api/path'
 import { getVersion, getTauriVersion } from '@tauri-apps/api/app'
 import { version, type as platformType, arch } from '@tauri-apps/api/os'
 import { selectImages } from '~/lib'
+
+const GlobalSettings = lazy(() => import('~/components/settings/Global'))
 
 const about = async (): Promise<void> => {
   const v = await getVersion()
@@ -84,16 +86,12 @@ const about = async (): Promise<void> => {
         <div>
           <p>
             系统：
-            {await getSystem()}
-            {' '}
-            {systemArch}
-            {' '}
-            {systemVersion}
+            {await getSystem()} {systemArch} {systemVersion}
           </p>
         </div>
       </>
     ),
-    onOk () { }
+    okText: '关闭',
   })
 }
 
@@ -105,17 +103,26 @@ interface Props {
 
 const FloatButtons: React.FC<Props> = (props) => {
   const { images, setImages, setLoading } = props
+  const [openSettings, setOpenSettings] = useState(false)
+
+  const handleOpenSettings = useCallback(() => {
+    setOpenSettings(true)
+  })
+
+  const handleCloseSettings = useCallback(() => {
+    setOpenSettings(false)
+  })
 
   return (
-    <FloatButton.Group shape="circle" style={{ right: 24 }}>
-      <FloatButton
-        icon={<InfoCircleOutlined />}
-        tooltip={<div>关于</div>}
-        onClick={about}
-      />
+    <>
+      <FloatButton.Group shape="circle" style={{ right: 24 }}>
+        <FloatButton
+          icon={<InfoCircleOutlined />}
+          tooltip={<div>关于</div>}
+          onClick={about}
+        />
 
-      {images != null
-        ? (
+        {images != null ? (
           <FloatButton
             icon={<PlusOutlined />}
             tooltip={<div>添加新图片</div>}
@@ -127,11 +134,9 @@ const FloatButtons: React.FC<Props> = (props) => {
               setImages?.(images.concat(selected))
             }}
           />
-          )
-        : null}
+        ) : null}
 
-      {images != null
-        ? (
+        {images != null ? (
           <FloatButton
             icon={<ReloadOutlined />}
             tooltip={<div>清空</div>}
@@ -139,11 +144,9 @@ const FloatButtons: React.FC<Props> = (props) => {
               setImages?.([])
             }}
           />
-          )
-        : null}
+        ) : null}
 
-      {images != null
-        ? (
+        {images != null ? (
           <FloatButton
             type="primary"
             tooltip={<div>合并</div>}
@@ -156,10 +159,10 @@ const FloatButtons: React.FC<Props> = (props) => {
                 filters: [
                   {
                     name: 'PDF',
-                    extensions: ['pdf']
-                  }
+                    extensions: ['pdf'],
+                  },
                 ],
-                defaultPath
+                defaultPath,
               })
 
               if (filePath == null) {
@@ -173,7 +176,7 @@ const FloatButtons: React.FC<Props> = (props) => {
               try {
                 await invoke<null>('merge_images_to_pdf', {
                   output: filePath,
-                  images: images.map((v) => ({ path: v.src }))
+                  images: images.map((v) => ({ path: v.src })),
                 })
 
                 // 使用系统默认阅读器打开 pdf
@@ -190,16 +193,24 @@ const FloatButtons: React.FC<Props> = (props) => {
               }
             }}
           />
-          )
-        : null}
+        ) : null}
 
-      <FloatButton icon={<SettingOutlined />} tooltip={<div>设置</div>} />
+        <FloatButton
+          icon={<SettingOutlined />}
+          onClick={handleOpenSettings}
+          tooltip="设置"
+        />
 
-      {images != null
-        ? <FloatButton.BackTop visibilityHeight={0} />
-        : null}
+        {images != null ? <FloatButton.BackTop visibilityHeight={0} /> : null}
+      </FloatButton.Group>
 
-    </FloatButton.Group>
+      <React.Suspense fallback={null}>
+        <GlobalSettings
+          open={openSettings}
+          closeSettings={handleCloseSettings}
+        />
+      </React.Suspense>
+    </>
   )
 }
 
