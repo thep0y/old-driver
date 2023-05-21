@@ -3,6 +3,7 @@
     windows_subsystem = "windows"
 )]
 
+mod config;
 mod error;
 mod image;
 mod logger;
