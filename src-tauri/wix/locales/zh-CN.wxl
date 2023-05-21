@@ -4,7 +4,7 @@
 >
     <String Id="TauriLanguage">2052</String>
     <String Id="TauriCodepage">936</String>
-    <String Id="AppName">PDF 老司机</String>
+    <String Id="AppName">pod</String>
     <String Id="AppDesc">PDF 处理软件</String>
     <String Id="LaunchApp">运行 PDF 老司机</String>
     <String Id="DowngradeErrorMessage">
